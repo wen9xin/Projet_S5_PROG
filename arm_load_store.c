@@ -606,7 +606,11 @@ int ldm1(arm_core p, uint32_t ins){
     return 0;
 }
 
+<<<<<<< HEAD
 // LDM(2)
+=======
+// LDM (2)
+>>>>>>> ee4c0d8360fc35230350d613f65434c95284ad78
 
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
