@@ -1,29 +1,51 @@
 /*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
+Armator - simulateur de jeu d'instruction ARMv5T ï¿½ but pï¿½dagogique
 Copyright (C) 2011 Guillaume Huard
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+termes de la Licence Publique Gï¿½nï¿½rale GNU publiï¿½e par la Free Software
+Foundation (version 2 ou bien toute autre version ultï¿½rieure choisie par vous).
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
+Ce programme est distribuï¿½ car potentiellement utile, mais SANS AUCUNE
 GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+commercialisation ou d'adaptation dans un but spï¿½cifique. Reportez-vous ï¿½ la
+Licence Publique Gï¿½nï¿½rale GNU pour plus de dï¿½tails.
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
+Vous devez avoir reï¿½u une copie de la Licence Publique Gï¿½nï¿½rale GNU en mï¿½me
+temps que ce programme ; si ce n'est pas le cas, ï¿½crivez ï¿½ la Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+ï¿½tats-Unis.
 
 Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
+	 Bï¿½timent IMAG
 	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
+	 38401 Saint Martin d'Hï¿½res
 */
 #ifndef __ARM_LOAD_STORE_H__
 #define __ARM_LOAD_STORE_H__
 #include <stdint.h>
 #include "arm_core.h"
+
+int conditionPassed(arm_core p, uint32_t ins);
+int rotateRight(int x, int n);
+
+uint32_t addr_Imm_Offset(arm_core p, uint32_t ins);
+uint32_t addr_Reg_Offset(arm_core p, uint32_t ins);
+uint32_t addr_Sca_Offset(arm_core p, uint32_t ins);
+
+int isImmediateOffset(uint32_t ins);
+int isRegisterOffset(uint32_t ins);
+int isScaledOffset(uint32_t ins);
+
+int isNormalIndexed(uint32_t ins);
+int isPreIndexed(uint32_t ins);
+int isPostIndexed(uint32_t ins);
+
+uint32_t getAddrByOffset(arm_core p, uint32_t ins);
+int refreshRnByOffset(arm_core p, uint32_t ins, uint32_t addr);
+
+int load_Word(arm_core p, uint32_t ins);
+int load_Byte(arm_core p, uint32_t ins);
+int load_Byte_Usr(arm_core p, uint32_t ins);
 
 int arm_load_store(arm_core p, uint32_t ins);
 int arm_load_store_multiple(arm_core p, uint32_t ins);
