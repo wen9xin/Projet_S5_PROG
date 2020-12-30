@@ -1,22 +1,21 @@
-/*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
-Copyright (C) 2011 Guillaume Huard
-Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+MIT License
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
-GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+Copyright (c) 2020 wen9xin
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
-	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
-*/
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
