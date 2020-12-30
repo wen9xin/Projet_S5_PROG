@@ -43,9 +43,53 @@ int isPostIndexed(uint32_t ins);
 uint32_t getAddrByOffset(arm_core p, uint32_t ins);
 int refreshRnByOffset(arm_core p, uint32_t ins, uint32_t addr);
 
+// Functions for addressing mode 3
+int is_Misc_Imm_Offset(uint32_t ins);
+int is_Misc_Reg_Offset(uint32_t ins);
+uint32_t misc_Imm_Offset(arm_core p, uint32_t ins);
+uint32_t misc_Reg_Offset(arm_core p, uint32_t ins);
+uint32_t getMiscAddrByOffset(arm_core p, uint32_t ins);
+int refreshMiscRnByOffset(arm_core p, uint32_t ins, uint32_t addr);
+
+// LDR : Load a 32-bit word.
 int load_Word(arm_core p, uint32_t ins);
+// LDRB : loads a byte from memory and zero-extends the byte to a 32-bit word
 int load_Byte(arm_core p, uint32_t ins);
-int load_Byte_Usr(arm_core p, uint32_t ins);
+// LDRBT : loads a byte from memory and zero-extends the byte to a 32-bit word
+int load_Byte_Trans(arm_core p, uint32_t ins);
+// LDRD : loads a pair of ARM registers from two consecutive words of memory.
+int load_Double_Word(arm_core p, uint32_t ins);
+// LDRH : loads a halfword from memory and zero-extends it to a 32-bit word
+int load_Half(arm_core p, uint32_t ins);
+// LDRSB : loads a byte from memory and sign-extends the byte to a 32-bit word.
+int load_Signed_Byte(arm_core p, uint32_t ins);
+// LDRSH : loads a half from memory and sign-extends the byte to a 32-bit word.
+int load_Signed_Half(arm_core p, uint32_t ins);
+// LDRT : loads a word from memory with translation.
+int load_Word_Trans(arm_core p, uint32_t ins);
+// STR : Load a 32-bit word.
+int store_Word(arm_core p, uint32_t ins);
+// STRB : Load a 8-bit byte from the least significant byte of a register.
+int store_Byte(arm_core p, uint32_t ins);
+// STRBT : Load a 8-bit byte with translation.
+int store_Byte_Trans(arm_core p, uint32_t ins);
+// STRD : tores a pair of ARM registers to two consecutive words of memory..
+int store_Double_Word(arm_core p, uint32_t ins);
+// STRH stores a halfword from the least significant halfword of a register to memory.
+int store_Half(arm_core p, uint32_t ins);
+// STRT : loads a word from memory with translation.
+int store_Word_Trans(arm_core p, uint32_t ins);
+
+
+
+
+// Function for Addressing Mode 4
+uint32_t nbSetBits(uint32_t ins);
+uint32_t getStartAddress(arm_core p, uint32_t ins);
+uint32_t getEndAddress(arm_core p, uint32_t ins);
+
+// LDM (1)
+int ldm1(arm_core p, uint32_t ins);
 
 int arm_load_store(arm_core p, uint32_t ins);
 int arm_load_store_multiple(arm_core p, uint32_t ins);
