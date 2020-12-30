@@ -606,7 +606,7 @@ int ldm1(arm_core p, uint32_t ins){
     return 0;
 }
 
-// LDM(2)
+// LDM(2) Test
 
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
