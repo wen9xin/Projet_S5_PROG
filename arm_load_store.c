@@ -88,20 +88,20 @@ int rotateRight(int x, int n) {
 // Functions For Addressing mode 2
 uint32_t addr_Imm_Offset(arm_core p, uint32_t ins){
     uint32_t addr = 0;
-    if(getUbit(ins) == 1){
-        addr = arm_read_register(p, getRn(ins)) + getOffset12(ins);
+    if(get_Ubit(ins) == 1){
+        addr = arm_read_register(p, get_Rn(ins)) + get_Offset12(ins);
     }else{
-        addr = arm_read_register(p, getRn(ins)) - getOffset12(ins);
+        addr = arm_read_register(p, get_Rn(ins)) - get_Offset12(ins);
     }
     return addr;
 }
 
 uint32_t addr_Reg_Offset(arm_core p, uint32_t ins){
     uint32_t addr = 0;
-    if(getUbit(ins) == 1){
-        addr = arm_read_register(p, getRn(ins)) + arm_read_register(p, getRm(ins));
+    if(get_Ubit(ins) == 1){
+        addr = arm_read_register(p, get_Rn(ins)) + arm_read_register(p, get_Rm(ins));
     }else{
-        addr = arm_read_register(p, getRn(ins)) - arm_read_register(p, getRm(ins));
+        addr = arm_read_register(p, get_Rn(ins)) - arm_read_register(p, get_Rm(ins));
     }
     return addr;
 }
@@ -111,19 +111,19 @@ uint32_t addr_Sca_Offset(arm_core p, uint32_t ins){
     uint32_t index;
     switch(get_bits(ins, 6, 5)){
         case 0: // LSL
-            index = arm_read_register(p, getRm(ins)) << get_bits(ins, 11, 7);
+            index = arm_read_register(p, get_Rm(ins)) << get_bits(ins, 11, 7);
             break;
         case 1: // LSR
-            index = arm_read_register(p, getRm(ins)) >> get_bits(ins, 11, 7);
+            index = arm_read_register(p, get_Rm(ins)) >> get_bits(ins, 11, 7);
             break;
         case 2: // ASR
             if(get_bits(ins, 11, 7) == 0){
-                if(get_bit(arm_read_register(p, getRm(ins)), 31) == 1){
+                if(get_bit(arm_read_register(p, get_Rm(ins)), 31) == 1){
                     index = 0xFFFFFFFF;
                 }else index = 0;
             }else{
-                index = arm_read_register(p, getRm(ins));
-                if(get_bit(arm_read_register(p, getRm(ins)), 31) == 1){
+                index = arm_read_register(p, get_Rm(ins));
+                if(get_bit(arm_read_register(p, get_Rm(ins)), 31) == 1){
                     uint32_t mask = 0xFFFFFFFF;
                     mask = ~(mask >> get_bits(ins, 11, 7));
                     index = (index >> get_bits(ins, 11, 7)) && mask;
@@ -134,16 +134,16 @@ uint32_t addr_Sca_Offset(arm_core p, uint32_t ins){
             if(get_bits(ins, 11, 7) == 0){ // RRX
                 uint32_t cpsr = arm_read_cpsr(p);
                 uint32_t c = get_bit(cpsr, 29) << 31;
-                index = c || (arm_read_register(p, getRm(ins)) >> 1);
+                index = c || (arm_read_register(p, get_Rm(ins)) >> 1);
             }else{ // ROR
-                index = rotateRight(arm_read_register(p, getRm(ins)), get_bits(ins, 11, 7));
+                index = rotateRight(arm_read_register(p, get_Rm(ins)), get_bits(ins, 11, 7));
             }
             break;
     }
-    if(getUbit(ins) == 1){
-        addr = arm_read_register(p, getRn(ins)) + index;
+    if(get_Ubit(ins) == 1){
+        addr = arm_read_register(p, get_Rn(ins)) + index;
     }else{
-        addr = arm_read_register(p, getRn(ins)) - index;
+        addr = arm_read_register(p, get_Rn(ins)) - index;
     }
     return addr;
 }
@@ -183,15 +183,15 @@ uint32_t getAddrByOffset(arm_core p, uint32_t ins){
     if(isImmediateOffset(ins)) {
         if(isNormalIndexed(ins)) addr = addr_Imm_Offset(p, ins);
         if(isPreIndexed(ins)) addr = addr_Imm_Offset(p, ins);
-        if(isPostIndexed(ins)) addr = arm_read_register(p, getRn(ins));
+        if(isPostIndexed(ins)) addr = arm_read_register(p, get_Rn(ins));
     }else if(isRegisterOffset(ins)){
         if(isNormalIndexed(ins)) addr = addr_Reg_Offset(p, ins);
         if(isPreIndexed(ins)) addr = addr_Reg_Offset(p, ins);
-        if(isPostIndexed(ins)) addr = arm_read_register(p, getRn(ins));
+        if(isPostIndexed(ins)) addr = arm_read_register(p, get_Rn(ins));
     }else if(isScaledOffset(ins)){
         if(isNormalIndexed(ins)) addr = addr_Sca_Offset(p, ins);
         if(isPreIndexed(ins)) addr = addr_Sca_Offset(p, ins);
-        if(isPostIndexed(ins)) addr = arm_read_register(p, getRn(ins));
+        if(isPostIndexed(ins)) addr = arm_read_register(p, get_Rn(ins));
     }
     return addr;
 }
@@ -199,14 +199,14 @@ uint32_t getAddrByOffset(arm_core p, uint32_t ins){
 int refreshRnByOffset(arm_core p, uint32_t ins, uint32_t addr){
     if(conditionPassed(p, ins)){
         if(isImmediateOffset(ins)) {
-            if(isPreIndexed(ins)) arm_write_register(p, getRn(ins), addr);
-            else if(isPostIndexed(ins)) arm_write_register(p, getRn(ins), addr_Imm_Offset(p, ins));
+            if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
+            else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
         }else if(isRegisterOffset(ins)){ 
-            if(isPreIndexed(ins)) arm_write_register(p, getRn(ins), addr);
-            else if(isPostIndexed(ins)) arm_write_register(p, getRn(ins), addr_Reg_Offset(p, ins));
+            if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
+            else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
         }else if(isScaledOffset(ins)){
-            if(isPreIndexed(ins)) arm_write_register(p, getRn(ins), addr);
-            else if(isPostIndexed(ins)) arm_write_register(p, getRn(ins), addr_Sca_Offset(p, ins));
+            if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
+            else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
         }
     }
     return 0;
@@ -224,16 +224,17 @@ int is_Misc_Reg_Offset(uint32_t ins){
 uint32_t misc_Imm_Offset(arm_core p, uint32_t ins){
     uint32_t addr;
     uint8_t offset8 = (get_bits(ins, 11, 8) << 4) || (get_bits(ins, 3, 0));
-    if(getUbit(ins) == 1) addr = arm_read_register(p, getRn(ins)) + offset8;
-    else addr = arm_read_register(p, getRn(ins)) - offset8;
+    if(get_Ubit(ins) == 1) addr = arm_read_register(p, get_Rn(ins)) + offset8;
+    else addr = arm_read_register(p, get_Rn(ins)) - offset8;
+    return addr;
 }
 
 uint32_t misc_Reg_Offset(arm_core p, uint32_t ins){
     uint32_t addr = 0;
-    if(getUbit(ins) == 1){
-        addr = arm_read_register(p, getRn(ins)) + arm_read_register(p, getRm(ins));
+    if(get_Ubit(ins) == 1){
+        addr = arm_read_register(p, get_Rn(ins)) + arm_read_register(p, get_Rm(ins));
     }else{
-        addr = arm_read_register(p, getRn(ins)) - arm_read_register(p, getRm(ins));
+        addr = arm_read_register(p, get_Rn(ins)) - arm_read_register(p, get_Rm(ins));
     }
     return addr;
 }
@@ -243,23 +244,23 @@ uint32_t getMiscAddrByOffset(arm_core p, uint32_t ins){
     if(is_Misc_Imm_Offset(ins)) {
         if(isNormalIndexed(ins)) addr = misc_Imm_Offset(p, ins);
         if(isPreIndexed(ins)) addr = misc_Imm_Offset(p, ins);
-        if(isPostIndexed(ins)) addr = arm_read_register(p, getRn(ins));
+        if(isPostIndexed(ins)) addr = arm_read_register(p, get_Rn(ins));
     }else if(is_Misc_Reg_Offset(ins)){
         if(isNormalIndexed(ins)) addr = misc_Reg_Offset(p, ins);
         if(isPreIndexed(ins)) addr = misc_Reg_Offset(p, ins);
-        if(isPostIndexed(ins)) addr = arm_read_register(p, getRn(ins));
-    return addr;
+        if(isPostIndexed(ins)) addr = arm_read_register(p, get_Rn(ins));
     }
+    return addr;
 }
 
 int refreshMiscRnByOffset(arm_core p, uint32_t ins, uint32_t addr){
     if(conditionPassed(p, ins)){
         if(is_Misc_Imm_Offset(ins)) {
-            if(isPreIndexed(ins)) arm_write_register(p, getRn(ins), addr);
-            else if(isPostIndexed(ins)) arm_write_register(p, getRn(ins), misc_Imm_Offset(p, ins));
+            if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
+            else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), misc_Imm_Offset(p, ins));
         }else if(is_Misc_Reg_Offset(ins)){
-            if(isPreIndexed(ins)) arm_write_register(p, getRn(ins), addr);
-            else if(isPostIndexed(ins)) arm_write_register(p, getRn(ins), misc_Reg_Offset(p, ins));
+            if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
+            else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), misc_Reg_Offset(p, ins));
         }
     }
     return 0;
@@ -269,7 +270,7 @@ int refreshMiscRnByOffset(arm_core p, uint32_t ins, uint32_t addr){
 int load_Word(arm_core p, uint32_t ins){
     uint32_t data;
     uint32_t addr = getAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         arm_read_word(p, addr, &data);
         if(rd == 15){
@@ -286,7 +287,7 @@ int load_Word(arm_core p, uint32_t ins){
 int load_Byte(arm_core p, uint32_t ins){
     uint8_t data;
     uint32_t addr = getAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         arm_read_byte(p, addr, &data);
         arm_write_register(p, rd, data);
@@ -299,17 +300,17 @@ int load_Byte(arm_core p, uint32_t ins){
 int load_Byte_Trans(arm_core p, uint32_t ins){
     if(get_bit(ins, 24) != 0 || get_bit(ins, 21) != 1) return 2;
     uint8_t data;
-    uint32_t addr = arm_read_register(p, getRn(ins));
+    uint32_t addr = arm_read_register(p, get_Rn(ins));
 
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         arm_read_byte(p, addr, &data);
         arm_write_usr_register(p, rd, data);
     }
     if(conditionPassed(p, ins)){
-        if(isImmediateOffset(ins)) arm_write_register(p, getRn(ins), addr_Imm_Offset(p, ins));
-        else if(isRegisterOffset(ins)) arm_write_register(p, getRn(ins), addr_Reg_Offset(p, ins));
-        else if(isScaledOffset(ins)) arm_write_register(p, getRn(ins), addr_Sca_Offset(p, ins));
+        if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
+        else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
+        else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
     }
     return 0;
 }
@@ -319,7 +320,7 @@ int load_Byte_Trans(arm_core p, uint32_t ins){
 int load_Double_Word(arm_core p, uint32_t ins){
     uint32_t data1, data2;
     uint32_t addr = getMiscAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         if((rd % 2 == 0) && (rd != 14)){
             if((get_bits(addr, 1, 0) == 0) && (get_bit(addr, 2) == 0)){
@@ -340,7 +341,7 @@ int load_Double_Word(arm_core p, uint32_t ins){
 int load_Half(arm_core p, uint32_t ins){
     uint16_t data;
     uint32_t addr = getMiscAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         if(get_bit(addr, 0) == 0) arm_read_half(p, addr, &data);
         else return UNDEFINED_INSTRUCTION;
@@ -355,7 +356,7 @@ int load_Signed_Byte(arm_core p, uint32_t ins){
     uint8_t data;
     uint32_t data32;
     uint32_t addr = getMiscAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         arm_read_byte(p, addr, &data);
         if(get_bit(data, 7) == 0) data32 = data;
@@ -371,7 +372,7 @@ int load_Signed_Half(arm_core p, uint32_t ins){
     uint16_t data = 0;
     uint32_t data32;
     uint32_t addr = getMiscAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         if(get_bit(addr, 0) == 0) arm_read_half(p, addr, &data);
         else return UNDEFINED_INSTRUCTION;
@@ -388,17 +389,17 @@ int load_Signed_Half(arm_core p, uint32_t ins){
 int load_Word_Trans(arm_core p, uint32_t ins){
     if(get_bit(ins, 24) != 0 || get_bit(ins, 21) != 1) return 2;
     uint32_t data;
-    uint32_t addr = arm_read_register(p, getRn(ins));
+    uint32_t addr = arm_read_register(p, get_Rn(ins));
 
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         arm_read_word(p, addr, &data);
         arm_write_usr_register(p, rd, data);
     }
     if(conditionPassed(p, ins)){
-        if(isImmediateOffset(ins)) arm_write_register(p, getRn(ins), addr_Imm_Offset(p, ins));
-        else if(isRegisterOffset(ins)) arm_write_register(p, getRn(ins), addr_Reg_Offset(p, ins));
-        else if(isScaledOffset(ins)) arm_write_register(p, getRn(ins), addr_Sca_Offset(p, ins));
+        if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
+        else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
+        else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
     }
     return 0;
 }
@@ -407,7 +408,7 @@ int load_Word_Trans(arm_core p, uint32_t ins){
 int store_Word(arm_core p, uint32_t ins){
     uint32_t data;
     uint32_t addr = getAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         data = arm_read_register(p, rd);
         arm_write_word(p, addr, data);
@@ -420,7 +421,7 @@ int store_Word(arm_core p, uint32_t ins){
 int store_Byte(arm_core p, uint32_t ins){
     uint8_t data;
     uint32_t addr = getAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         data = arm_read_register(p, rd) & 0xFF;
         arm_write_byte(p, addr, data);
@@ -433,16 +434,16 @@ int store_Byte(arm_core p, uint32_t ins){
 int store_Byte_Trans(arm_core p, uint32_t ins){
     if(get_bit(ins, 24) != 0 || get_bit(ins, 21) != 1) return 2;
     uint8_t data;
-    uint32_t addr = arm_read_register(p, getRn(ins));
-    uint8_t rd = getRd(ins);
+    uint32_t addr = arm_read_register(p, get_Rn(ins));
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         data = arm_read_usr_register(p, rd) & 0xFF;
         arm_write_byte(p, addr, data);
     }
     if(conditionPassed(p, ins)){
-        if(isImmediateOffset(ins)) arm_write_register(p, getRn(ins), addr_Imm_Offset(p, ins));
-        else if(isRegisterOffset(ins)) arm_write_register(p, getRn(ins), addr_Reg_Offset(p, ins));
-        else if(isScaledOffset(ins)) arm_write_register(p, getRn(ins), addr_Sca_Offset(p, ins));
+        if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
+        else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
+        else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
     }
     return 0;
 }
@@ -452,7 +453,7 @@ int store_Byte_Trans(arm_core p, uint32_t ins){
 int store_Double_Word(arm_core p, uint32_t ins){
     uint32_t data1, data2;
     uint32_t addr = getMiscAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         if((rd % 2 == 0) && (rd != 14)){
             if((get_bits(addr, 1, 0) == 0) && (get_bit(addr, 2) == 0)){
@@ -473,7 +474,7 @@ int store_Double_Word(arm_core p, uint32_t ins){
 int store_Half(arm_core p, uint32_t ins){
     uint16_t data;
     uint32_t addr = getMiscAddrByOffset(p, ins);
-    uint8_t rd = getRd(ins);
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         if(get_bit(addr, 0) == 0) data = arm_read_register(p,rd);
         else return UNDEFINED_INSTRUCTION;
@@ -487,16 +488,16 @@ int store_Half(arm_core p, uint32_t ins){
 int store_Word_Trans(arm_core p, uint32_t ins){
     if(get_bit(ins, 24) != 0 || get_bit(ins, 21) != 1) return 2;
     uint32_t data;
-    uint32_t addr = arm_read_register(p, getRn(ins));
-    uint8_t rd = getRd(ins);
+    uint32_t addr = arm_read_register(p, get_Rn(ins));
+    uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
         data = arm_read_usr_register(p, rd) & 0xFF;
         arm_write_word(p, addr, data);
     }
     if(conditionPassed(p, ins)){
-        if(isImmediateOffset(ins)) arm_write_register(p, getRn(ins), addr_Imm_Offset(p, ins));
-        else if(isRegisterOffset(ins)) arm_write_register(p, getRn(ins), addr_Reg_Offset(p, ins));
-        else if(isScaledOffset(ins)) arm_write_register(p, getRn(ins), addr_Sca_Offset(p, ins));
+        if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
+        else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
+        else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
     }
     return 0;
 }
@@ -540,6 +541,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
         else if(bit20 == 0 && bit6 == 0 && bit5 == 1) store_Half(p, ins); // STRH
         else return UNDEFINED_INSTRUCTION;
     }else return UNDEFINED_INSTRUCTION;
+    return 0;
 }
 
 // Function for Addressing Mode 4
@@ -550,19 +552,20 @@ uint32_t nbSetBits(uint32_t ins){
         number &= (number -1);
         count ++;
     }
+    return count;
 }
 
 uint32_t getStartAddress(arm_core p, uint32_t ins){
     int idab = get_bits(ins, 24, 23);
     switch(idab){
         case 1: // Increment after
-            return arm_read_register(p, getRn(ins));
+            return arm_read_register(p, get_Rn(ins));
         case 3 : // Increment before
-            return arm_read_register(p, getRn(ins)) + 4;
+            return arm_read_register(p, get_Rn(ins)) + 4;
         case 0 : //Decrement after
-            return arm_read_register(p, getRn(ins)) - 4*nbSetBits(ins) + 4;
+            return arm_read_register(p, get_Rn(ins)) - 4*nbSetBits(ins) + 4;
         default : // Decrement before
-            return arm_read_register(p, getRn(ins)) - 4*nbSetBits(ins);
+            return arm_read_register(p, get_Rn(ins)) - 4*nbSetBits(ins);
     }
 }
 
@@ -570,13 +573,13 @@ uint32_t getEndAddress(arm_core p, uint32_t ins){
     int idab = get_bits(ins, 24, 23);
     switch(idab){
         case 1: // Increment after
-            return arm_read_register(p, getRn(ins)) + 4*nbSetBits(ins) - 4;
+            return arm_read_register(p, get_Rn(ins)) + 4*nbSetBits(ins) - 4;
         case 3 : // Increment before
-            return arm_read_register(p, getRn(ins)) + 4*nbSetBits(ins);
+            return arm_read_register(p, get_Rn(ins)) + 4*nbSetBits(ins);
         case 0 : //Decrement after
-            return arm_read_register(p, getRn(ins));
+            return arm_read_register(p, get_Rn(ins));
         default : // Decrement before
-            return arm_read_register(p, getRn(ins)) - 4;
+            return arm_read_register(p, get_Rn(ins)) - 4;
     }
 }
 

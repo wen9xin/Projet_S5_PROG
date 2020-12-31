@@ -192,7 +192,6 @@ void write_register(registers r, uint8_t reg, uint32_t value) {
 
 void write_usr_register(registers r, uint8_t reg, uint32_t value) {
     if(reg < 0) return;
-    uint8_t mode = get_mode(r);
     if(reg < 8){
         (r + reg) -> reg_data = value;
     }else if(reg < 13){
