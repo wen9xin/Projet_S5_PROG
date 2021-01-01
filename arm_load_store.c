@@ -126,7 +126,7 @@ uint32_t addr_Sca_Offset(arm_core p, uint32_t ins){
                 if(get_bit(arm_read_register(p, get_Rm(ins)), 31) == 1){
                     uint32_t mask = 0xFFFFFFFF;
                     mask = ~(mask >> get_bits(ins, 11, 7));
-                    index = (index >> get_bits(ins, 11, 7)) && mask;
+                    index = (index >> get_bits(ins, 11, 7)) & mask;
                 }else index = index >> get_bits(ins, 11, 7);
             }
             break;
