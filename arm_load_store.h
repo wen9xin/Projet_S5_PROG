@@ -28,6 +28,7 @@ Contact: Guillaume.Huard@imag.fr
 int conditionPassed(arm_core p, uint32_t ins);
 int rotateRight(int x, int n);
 
+// Functions for addressing mode 2
 uint32_t addr_Imm_Offset(arm_core p, uint32_t ins);
 uint32_t addr_Reg_Offset(arm_core p, uint32_t ins);
 uint32_t addr_Sca_Offset(arm_core p, uint32_t ins);
@@ -81,15 +82,29 @@ int store_Half(arm_core p, uint32_t ins);
 int store_Word_Trans(arm_core p, uint32_t ins);
 
 
-
-
 // Function for Addressing Mode 4
 uint32_t nbSetBits(uint32_t ins);
 uint32_t getStartAddress(arm_core p, uint32_t ins);
 uint32_t getEndAddress(arm_core p, uint32_t ins);
 
-// LDM (1)
+// LDM (1) (Load Multiple) loads a non-empty subset, or possibly all, 
+// of the general-purpose registers from sequential memory locations.
 int ldm1(arm_core p, uint32_t ins);
+
+// LDM(2) loads User mode registers when the processor is in a privileged mode.
+int ldm2(arm_core p, uint32_t ins);
+
+// LDM (3) loads a subset, or possibly all, 
+// of the general-purpose registers and the PC from sequential memory locations.
+int ldm3(arm_core p, uint32_t ins);
+
+// STM (1) (Store Multiple) stores a non-empty subset (or possibly all) 
+// of the general-purpose registers to sequential memory locations. 
+int stm1(arm_core p, uint32_t ins);
+
+// STM (2) stores a subset (or possibly all) of the User mode 
+// general-purpose registers to sequential memory locations.
+int stm2(arm_core p, uint32_t ins);
 
 int arm_load_store(arm_core p, uint32_t ins);
 int arm_load_store_multiple(arm_core p, uint32_t ins);

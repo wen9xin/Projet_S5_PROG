@@ -583,17 +583,17 @@ uint32_t getEndAddress(arm_core p, uint32_t ins){
     }
 }
 
-// LDM (1)
+// LDM (1) (Load Multiple) loads a non-empty subset, or possibly all, 
+// of the general-purpose registers from sequential memory locations.
 int ldm1(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
-        uint32_t data;
+        uint32_t data = 0;
         uint32_t startAddr = getStartAddress(p, ins);
         uint32_t currAddr = startAddr;
         for(int i=0; i<15; i++){
             if(get_bit(ins, i) == 1){
                 arm_read_word(p, currAddr, &data);
                 arm_write_register(p, i, data);
-
                 currAddr = currAddr + 4;
             }
         }
@@ -609,7 +609,84 @@ int ldm1(arm_core p, uint32_t ins){
     return 0;
 }
 
-// LDM(2)
+// LDM(2) loads User mode registers when the processor is in a privileged mode.
+int ldm2(arm_core p, uint32_t ins){
+    if(conditionPassed(p, ins)){
+        uint32_t data = 0;
+        uint32_t startAddr = getStartAddress(p, ins);
+        uint32_t currAddr = startAddr;
+        for(int i=0; i<15; i++){
+            if(get_bit(ins, i) == 1){
+                arm_read_word(p, currAddr, &data);
+                arm_write_usr_register(p, i, data);
+                currAddr = currAddr + 4;
+            }
+        }
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+    }
+    return 0;
+}
+
+// LDM (3) loads a subset, or possibly all, 
+// of the general-purpose registers and the PC from sequential memory locations.
+int ldm3(arm_core p, uint32_t ins){
+    if(conditionPassed(p, ins)){
+        uint32_t data = 0;
+        uint32_t startAddr = getStartAddress(p, ins);
+        uint32_t currAddr = startAddr;
+        for(int i=0; i<15; i++){
+            if(get_bit(ins, i) == 1){
+                arm_read_word(p, currAddr, &data);
+                arm_write_register(p, i, data);
+                currAddr = currAddr + 4;
+            }
+        }
+        
+        if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
+
+        uint32_t value = 0;
+        arm_read_word(p, currAddr, &value);
+        arm_write_register(p, 15, value);
+        currAddr = currAddr + 4;
+
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+    }
+    return 0;
+}
+
+// STM (1) (Store Multiple) stores a non-empty subset (or possibly all) 
+// of the general-purpose registers to sequential memory locations. 
+int stm1(arm_core p, uint32_t ins){
+    if(conditionPassed(p, ins)){
+        uint32_t data = 0;
+        uint32_t startAddr = getStartAddress(p, ins);
+        uint32_t currAddr = startAddr;
+        for(int i =0; i<16; i++){
+            data = arm_read_register(p, i);
+            arm_write_word(p, currAddr, data);
+            currAddr = currAddr + 4;
+        }
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+    }
+    return 0;
+}
+
+// STM (2) stores a subset (or possibly all) of the User mode 
+// general-purpose registers to sequential memory locations.
+int stm2(arm_core p, uint32_t ins){
+    if(conditionPassed(p, ins)){
+        uint32_t data = 0;
+        uint32_t startAddr = getStartAddress(p, ins);
+        uint32_t currAddr = startAddr;
+        for(int i =0; i<16; i++){
+            data = arm_read_usr_register(p, i);
+            arm_write_word(p, currAddr, data);
+            currAddr = currAddr + 4;
+        }
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+    }
+    return 0;
+}
 
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
