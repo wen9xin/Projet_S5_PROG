@@ -27,8 +27,68 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 #include "debug.h"
 
+int conditionPassed(arm_core p, uint32_t ins){
+    uint32_t cpsr = arm_read_cpsr(p);
+    int n = get_bit(cpsr, 31);
+    int z = get_bit(cpsr, 30);
+    int c = get_bit(cpsr, 29);
+    int v = get_bit(cpsr, 28);
+
+    switch(get_bits(ins, 31, 28)){
+        case 0:
+            return z == 1;
+        case 1:
+            return z == 0;
+        case 2:
+            return c == 1;
+        case 3:
+            return c == 0;
+        case 4:
+            return n == 1;
+        case 5:
+            return n == 0;
+        case 6:
+            return v == 1;
+        case 7:
+            return v == 0;
+        case 8:
+            return c == 1 && z == 0;
+        case 9:
+            return c == 0 || z == 1;
+        case 10:
+            return n == v;
+        case 11:
+            return n != v;
+        case 12:
+            return z == 0 && n == v;
+        case 13:
+            return z == 1 || n != v;
+        case 15:
+            return 0xF;
+        default: 
+            return 1;
+    }
+}
+
 int get_cflag(arm_core p){
 	return get_bit(arm_read_cpsr(p), 29);
+}
+
+int get_rn(uint32_t ins){
+	return get_bits(ins, 19, 16);
+}
+
+int get_rd(uint32_t ins){
+	return get_bits(ins, 15, 12);
+}
+
+int get_s_bit(uint32_t ins){
+	return get_bit(ins, 20);
+}
+
+void modify_nzcv(arm_core p, int n, int z, int c, int v){
+	uint32_t cpsr_current = arm_read_cpsr(p) & 0xFFFFFFF;
+	return (n << 31) | (z << 30) | (c << 29) | (v << 28) | cpsr_current;
 }
 
 uint32_t rotateRight(uint32_t x, uint32_t n) {
@@ -62,7 +122,7 @@ uint64_t packing_shifter(uint32_t shifter_operand, uint32_t shifter_carry_out){
 	return res;
 }
 
-uint32_t get_shifter_operand(uint64_t res){
+int32_t get_shifter_operand(uint64_t res){
 	return (res >> 32) & 0xFFFFFFFF;
 }
 
@@ -74,7 +134,7 @@ uint32_t get_shifter_carry_out(uint64_t res){
 uint64_t imm(arm_core p, uint32_t ins){
 	uint32_t immed_8 = get_bits(ins, 7, 0);
 	uint32_t rotate_imm = get_bits(ins, 11, 8);
-	uint32_t shifter_operand = rotateRight(immed_8, rotate_imm);
+	int32_t shifter_operand = rotateRight(immed_8, rotate_imm);
 	uint32_t shifter_carry_out = 0;
 	if(rotate_imm == 0) shifter_carry_out = get_cflag(p);
 	else shifter_carry_out = get_bit(shifter_operand, 31);
@@ -276,6 +336,92 @@ uint64_t get_operande_and_carry_out(arm_core p, uint32_t ins) {
 		}
 	}
 	return res;
+}
+
+int get_opcode(uint32_t ins){
+	return get_bits(ins, 24, 21);
+}
+
+int get_carry_flag(arm_core p, int32_t number1, int32_t number2, int opcode){
+	switch(opcode){
+		case 5 : // ADC
+			int complement = get_cflag(p);
+			int64_t num1 = number1;
+			int64_t num2 = number2;
+			int32_t res = number1 + number2 + complement;
+			int64_t res64 = num1 + num2 + complement;
+			if(res == res64) return 0;
+			else return 1;
+			break;
+		case 4 : // ADD
+			int64_t num1 = number1;
+			int64_t num2 = number2;
+			int32_t res = number1 + number2;
+			int64_t res64 = num1 + num2;
+			if(res == res64) return 0;
+			else return 1;
+			break;
+		default:
+			break;
+	}
+	
+}
+
+int get_sub_carry_flag(int32_t number1, int32_t number2){
+	if(number1 >= number2) return 0;
+	else return 1;
+}
+
+int get_overflow_flag(int32_t number1, int32_t number2, int32_t res){
+	int v = (~(get_bit(number1, 7)) & ~(get_bit(number2, 7)) & get_bit(res, 7)) | (get_bit(number1, 7) & (get_bit(number2, 7) & ~(get_bit(res, 7));
+	return v;
+}
+
+int32_t unsigned_to_signed(uint32_t uns) {
+	int32_t signednumber = uns;
+	return signednumber;
+}
+
+uint32_t adc(arm_core p, uint32_t ins){
+	uint64_t packaged = get_operande_and_carry_out(p, ins);
+	int32_t shifter_operand = get_shifter_operand(packaged);
+	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
+	int32_t rd_data;
+	if(conditionPassed(p, ins)){
+		rd_data = rn_data + shifter_operand + get_cflag(p);
+		arm_write_register(p, get_rd(ins), rd_data);
+		if(get_s_bit(ins) == 0 && get_rd(ins) == 15){
+			if(arm_current_mode_has_spsr) arm_write_cpsr(p, arm_read_spsr(p));
+		}else if(get_s_bit(ins) == 1){
+			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
+			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
+			int c = get_carry_flag(p, rn_data, shifter_operand, 5);
+			int v = get_overflow_flag(rn_data, shifter_operand, rd_data);
+			modify_nzcv(p, n, z, c, v);
+		}
+	}
+	return 0;
+}
+
+uint32_t add(arm_core p, uint32_t ins){
+	uint64_t packaged = get_operande_and_carry_out(p, ins);
+	int32_t shifter_operand = get_shifter_operand(packaged);
+	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
+	int32_t rd_data;
+	if(conditionPassed(p, ins)){
+		rd_data = rn_data + shifter_operand;
+		arm_write_register(p, get_rd(ins), rd_data);
+		if(get_s_bit(ins) == 0 && get_rd(ins) == 15){
+			if(arm_current_mode_has_spsr) arm_write_cpsr(p, arm_read_spsr(p));
+		}else if(get_s_bit(ins) == 1){
+			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
+			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
+			int c = get_carry_flag(p, rn_data, shifter_operand, 4);
+			int v = get_overflow_flag(rn_data, shifter_operand, rd_data);
+			modify_nzcv(p, n, z, c, v);
+		}
+	}
+	return 0;
 }
 
 /* Decoding functions for different classes of instructions */
