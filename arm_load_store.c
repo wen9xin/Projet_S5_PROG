@@ -690,7 +690,25 @@ int stm2(arm_core p, uint32_t ins){
 
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    int bit27 = get_bit(ins, 27);
+    int bit26 = get_bit(ins, 26);
+    int bit25 = get_bit(ins, 25);
+    int bit22 = get_bit(ins, 22); // S bit
+    int bit21 = get_bit(ins, 21); // W bit
+    int bit20 = get_bit(ins, 20); // L bit
+    int bit15 = get_bit(ins, 15); // PC Reg
+    
+    if(bit27 == 1 && bit26 == 0 && bit25 == 0){
+        {
+            if(bit22 == 0 && bit20 == 1) ldm1(p, ins);
+            else if (bit22 == 1 && bit20 == 1 && bit15 == 0) ldm2(p, ins);
+            else if (bit22 == 1 && bit20 == 1 && bit15 == 1) ldm3(p, ins);
+            else if (bit22 == 0 && bit20 == 0) stm1(p, ins);
+            else if (bit22 == 1 && bit21 == 0 && bit20 == 0) stm2(p, ins);
+            else return UNDEFINED_INSTRUCTION;
+        }
+    }
+    return 0;
 }
 
 int arm_coprocessor_load_store(arm_core p, uint32_t ins) {
