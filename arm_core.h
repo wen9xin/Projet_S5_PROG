@@ -55,5 +55,8 @@ int arm_write_byte(arm_core p, uint32_t address, uint8_t value);
 int arm_write_half(arm_core p, uint32_t address, uint16_t value);
 int arm_write_word(arm_core p, uint32_t address, uint32_t value);
 
+int conditionPassed(arm_core p, uint32_t ins);
+uint32_t rotateRight(uint32_t x, uint32_t n);
+
 #include "trace_location.h"
 #endif

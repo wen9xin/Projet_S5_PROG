@@ -34,57 +34,6 @@ Contact: Guillaume.Huard@imag.fr
 #define get_Rm(x) ((x)&0xF)
 #define get_Offset12(x) ((x)&0xFFF)
 
-int conditionPassed(arm_core p, uint32_t ins){
-    uint32_t cpsr = arm_read_cpsr(p);
-    int n = get_bit(cpsr, 31);
-    int z = get_bit(cpsr, 30);
-    int c = get_bit(cpsr, 29);
-    int v = get_bit(cpsr, 28);
-
-    switch(get_bits(ins, 31, 28)){
-        case 0:
-            return z == 1;
-        case 1:
-            return z == 0;
-        case 2:
-            return c == 1;
-        case 3:
-            return c == 0;
-        case 4:
-            return n == 1;
-        case 5:
-            return n == 0;
-        case 6:
-            return v == 1;
-        case 7:
-            return v == 0;
-        case 8:
-            return c == 1 && z == 0;
-        case 9:
-            return c == 0 || z == 1;
-        case 10:
-            return n == v;
-        case 11:
-            return n != v;
-        case 12:
-            return z == 0 && n == v;
-        case 13:
-            return z == 1 || n != v;
-        case 15:
-            return 0xF;
-        default: 
-            return 1;
-    }
-}
-
-int rotateRight(int x, int n) {
-    int shifted = x >> n;
-    int rot_bits = x << (32-n);
-    int combined = shifted | rot_bits;
-
-    return combined;
-}
-
 // Functions For Addressing mode 2
 uint32_t addr_Imm_Offset(arm_core p, uint32_t ins){
     uint32_t addr = 0;

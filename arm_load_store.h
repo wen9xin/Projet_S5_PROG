@@ -25,9 +25,6 @@ Contact: Guillaume.Huard@imag.fr
 #include <stdint.h>
 #include "arm_core.h"
 
-int conditionPassed(arm_core p, uint32_t ins);
-int rotateRight(int x, int n);
-
 // Functions for addressing mode 2
 uint32_t addr_Imm_Offset(arm_core p, uint32_t ins);
 uint32_t addr_Reg_Offset(arm_core p, uint32_t ins);

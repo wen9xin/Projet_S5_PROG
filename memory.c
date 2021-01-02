@@ -25,18 +25,17 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 
 struct memory_data {
-    uint32_t * mem_data;
+    uint8_t * mem_data;
     uint8_t endianess;
     size_t size;
 };
 
 memory memory_create(size_t size, int is_big_endian) {
-    uint32_t * mdata = calloc(size, sizeof(uint32_t));
-    memory m = malloc(size*(sizeof(uint32_t)) + sizeof(uint8_t) + sizeof(size_t));
-    m->mem_data = mdata;
-    m->endianess = is_big_endian;
-    m->size = size;
-    return m;
+    memory mdata = calloc(1, sizeof(struct memory_data));
+    mdata -> mem_data = malloc(sizeof(uint8_t)*size);
+    mdata -> endianess = is_big_endian;
+    mdata -> size = size;
+    return mdata;
 }
 
 size_t memory_get_size(memory mem) {
@@ -44,11 +43,15 @@ size_t memory_get_size(memory mem) {
 }
 
 void memory_destroy(memory mem) {
+    free(mem -> mem_data);
     free(mem);
 }
 
 int memory_read_byte(memory mem, uint32_t address, uint8_t *value) {
-    *value = *(mem->mem_data + address);
+    if(mem->size > address){
+        *value = *(mem->mem_data + address);
+        return 0;
+    }
     return 1;
 }
 
@@ -98,7 +101,10 @@ int memory_read_word(memory mem, uint32_t address, uint32_t *value) {
 }
 
 int memory_write_byte(memory mem, uint32_t address, uint8_t value) {
-    *(mem->mem_data + address) = value;
+    if(mem->size > address){
+        *(mem->mem_data + address) = value;
+        return 0;
+    }   
     return 1;
 }
 
