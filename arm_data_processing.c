@@ -373,7 +373,7 @@ int get_sub_carry_flag(int32_t number1, int32_t number2){
 }
 
 int get_overflow_flag(int32_t number1, int32_t number2, int32_t res){
-	int v = (~(get_bit(number1, 7)) & ~(get_bit(number2, 7)) & get_bit(res, 7)) | (get_bit(number1, 7) & (get_bit(number2, 7) & ~(get_bit(res, 7));
+	int v = (~(get_bit(number1, 7)) & ~(get_bit(number2, 7)) & (get_bit(res, 7))) | ((get_bit(number1, 7)) & (get_bit(number2, 7)) & ~(get_bit(res, 7)));
 	return v;
 }
 
