@@ -25,7 +25,82 @@ Contact: Guillaume.Huard@imag.fr
 #include <stdint.h>
 #include "arm_core.h"
 
-int arm_data_processing_shift(arm_core p, uint32_t ins);
-int arm_data_processing_immediate_msr(arm_core p, uint32_t ins);
+
+int get_cflag(arm_core p);
+int get_rn(uint32_t ins);
+int get_rd(uint32_t ins);
+int get_s_bit(uint32_t ins);
+void modify_nzcv(arm_core p, int n, int z, int c, int v);
+uint32_t arithmetic_shift_right(uint32_t x, uint32_t n);
+
+/*  
+	Functions for Addressing mode 1
+	return an 64 bit unsigned int where:
+ 	first 32 bits is shifter_operand,
+ 	second 32 bits is shifter_carry_out.
+*/
+uint64_t packing_shifter(uint32_t shifter_operand, uint32_t shifter_carry_out);
+int32_t get_shifter_operand(uint64_t res);
+uint32_t get_shifter_carry_out(uint64_t res);
+
+// Data-processing operands - Immediate
+uint64_t imm(arm_core p, uint32_t ins);
+
+// Data-processing operands - Register
+uint64_t reg(arm_core p, uint32_t ins);
+
+// Data-processing operands - Logical shift left by immediate
+uint64_t lsl_imm(arm_core p, uint32_t ins);
+
+// Data-processing operands - Logical shift left by register
+uint64_t lsl_reg(arm_core p, uint32_t ins);
+
+// Data-processing operands - Logical shift right by immediate
+uint64_t lsr_imm(arm_core p, uint32_t ins);
+
+// Data-processing operands - Logical shift right by register
+uint64_t lsr_reg(arm_core p, uint32_t ins);
+
+// Data-processing operands - Arithmetic shift right by immediate
+uint64_t asr_imm(arm_core p, uint32_t ins);
+
+// Data-processing operands - Arithmetic shift right by register
+uint64_t asr_reg(arm_core p, uint32_t ins);
+
+// Data-processing operands - Rotate right with extend
+uint64_t rrx(arm_core p, uint32_t ins);
+
+// Data-processing operands - Rotate right by immediate
+uint64_t ror_imm(arm_core p, uint32_t ins);
+
+// Data-processing operands - Rotate right by register
+uint64_t ror_reg(arm_core p, uint32_t ins);
+
+uint64_t get_operande_and_carry_out(arm_core p, uint32_t ins);
+int get_opcode(uint32_t ins);
+int get_carry(arm_core p, int32_t number1, int32_t number2, int condition);
+int get_borrow(arm_core p, int32_t number1, int32_t number2, int condition);
+int get_overflow_flag(int32_t number1, int32_t number2, int32_t res);
+int32_t unsigned_to_signed(uint32_t uns);
+uint32_t adc_procedure(arm_core p, uint32_t ins);
+uint32_t add_procedure(arm_core p, uint32_t ins);
+uint32_t and_procedure(arm_core p, uint32_t ins);
+uint32_t bic_procedure(arm_core p, uint32_t ins);
+uint32_t cmn_procedure(arm_core p, uint32_t ins);
+uint32_t cmp_procedure(arm_core p, uint32_t ins);
+uint32_t eor_procedure(arm_core p, uint32_t ins);
+uint32_t mov_procedure(arm_core p, uint32_t ins);
+uint32_t mvn_procedure(arm_core p, uint32_t ins);
+uint32_t orr_procedure(arm_core p, uint32_t ins);
+uint32_t rsb_procedure(arm_core p, uint32_t ins);
+uint32_t rsc_procedure(arm_core p, uint32_t ins);
+uint32_t sbc_procedure(arm_core p, uint32_t ins);
+uint32_t sub_procedure(arm_core p, uint32_t ins);
+uint32_t teq_procedure(arm_core p, uint32_t ins);
+uint32_t tst_procedure(arm_core p, uint32_t ins);
+
+/* Decoding functions for different classes of instructions */
+int arm_data_processing(arm_core p, uint32_t ins);
+
 
 #endif
