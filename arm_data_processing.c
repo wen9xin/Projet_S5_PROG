@@ -324,7 +324,7 @@ int get_borrow(arm_core p, int32_t number1, int32_t number2, int condition){
 		if(res >= 0) return 0;
 		else return 1;
 	}
-		
+	return 1;	
 }
 
 int get_overflow_flag(int32_t number1, int32_t number2, int32_t res){
@@ -397,6 +397,7 @@ uint32_t and_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t bic_procedure(arm_core p, uint32_t ins){
@@ -417,6 +418,7 @@ uint32_t bic_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t cmn_procedure(arm_core p, uint32_t ins){
@@ -431,6 +433,7 @@ uint32_t cmn_procedure(arm_core p, uint32_t ins){
 		int v = get_overflow_flag(rn_data, shifter_operand, alu_out);
 		modify_nzcv(p, n, z, c, v);
 	}
+	return 0;
 }
 
 uint32_t cmp_procedure(arm_core p, uint32_t ins){
@@ -445,6 +448,7 @@ uint32_t cmp_procedure(arm_core p, uint32_t ins){
 		int v = get_overflow_flag(rn_data, shifter_operand, alu_out);
 		modify_nzcv(p, n, z, c, v);
 	}
+	return 0;
 }
 
 uint32_t eor_procedure(arm_core p, uint32_t ins){
@@ -465,6 +469,7 @@ uint32_t eor_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t mov_procedure(arm_core p, uint32_t ins){
@@ -484,6 +489,7 @@ uint32_t mov_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t mvn_procedure(arm_core p, uint32_t ins){
@@ -503,6 +509,7 @@ uint32_t mvn_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t orr_procedure(arm_core p, uint32_t ins){
@@ -523,6 +530,7 @@ uint32_t orr_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t rsb_procedure(arm_core p, uint32_t ins){
@@ -543,6 +551,7 @@ uint32_t rsb_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t rsc_procedure(arm_core p, uint32_t ins){
@@ -563,6 +572,7 @@ uint32_t rsc_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t sbc_procedure(arm_core p, uint32_t ins){
@@ -583,6 +593,7 @@ uint32_t sbc_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t sub_procedure(arm_core p, uint32_t ins){
@@ -603,6 +614,7 @@ uint32_t sub_procedure(arm_core p, uint32_t ins){
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
+	return 0;
 }
 
 uint32_t teq_procedure(arm_core p, uint32_t ins){
@@ -617,6 +629,7 @@ uint32_t teq_procedure(arm_core p, uint32_t ins){
 		int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
 		modify_nzcv(p, n, z, c, v);
 	}
+	return 0;
 }
 
 uint32_t tst_procedure(arm_core p, uint32_t ins){
@@ -631,6 +644,7 @@ uint32_t tst_procedure(arm_core p, uint32_t ins){
 		int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
 		modify_nzcv(p, n, z, c, v);
 	}
+	return 0;
 }
 
 /* Decoding functions for different classes of instructions */
