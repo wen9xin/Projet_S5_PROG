@@ -30,39 +30,31 @@ int get_bit_24(uint32_t ins){
     return get_bit(ins, 24);
 }
 
-uint32_t calcBLTargetAddress(uint32_t ins){
+uint32_t calcBLTargetAddress(uint32_t ins, int mode){
+    // Mode : 0 --> BL, 1--> BLX
     uint32_t res = get_bits(ins, 23, 0) | 0x00000000;
-    if(get_bit(res, 23) == 1) res = res | 0xFF000000;
+    if(get_bit(res, 23) == 1){
+        if(!mode) res = res | 0xFF000000 | get_bit_24(ins) << 1;
+        else res = res | 0xFF000000;
+    } 
     return res << 2;
-}
-
-uint32_t calcBLXTargetAddress(uint32_t ins){
-    uint32_t res = get_bits(ins, 23, 0) | 0x00000000;
-    if(get_bit(res, 23) == 1) res = res | 0xFF000000 | get_bit_24(ins) << 1;
-    return res << 2;
-}
-
-int bl_procedure(arm_core p, uint32_t ins){
-    uint32_t pc = arm_read_register(p, 15);
-    if(conditionPassed(p, ins)){
-        if(get_bit_24(ins)) arm_write_register(p, 14, pc);
-    }
-    pc = pc + calcBLTargetAddress(ins);
-    arm_write_register(p, 15, pc);
-
-    return 0;
 }
 
 int blx1_procedure(arm_core p, uint32_t ins){
-    if(get_bits(ins, 31, 28) == 15){
-        uint32_t pc = arm_read_register(p, 15);
-        arm_write_register(p, 14, pc);
+    uint32_t pc = arm_read_register(p, 15);
+    if(conditionPassed(p, ins)){
+        if(get_bit_24(ins) || conditionPassed(p, ins) == 15) arm_write_register(p, 14, pc);
+    }
+
+    if(conditionPassed(p, ins) == 15){
         uint32_t cpsr = arm_read_cpsr(p);
         cpsr = (cpsr & 0xFFFFFFDF) | 0x20;
         arm_write_cpsr(p, cpsr);
-        pc = pc + calcBLXTargetAddress(ins);
-        arm_write_register(p, 15, pc);
     }
+
+    pc = pc + calcBLTargetAddress(ins, conditionPassed(p, ins) == 15);
+    arm_write_register(p, 15, pc);
+
     return 0;
 }
 
@@ -70,23 +62,8 @@ int blx2_procedure(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint32_t rm_data = arm_read_register(p, get_bits(ins, 3, 0));
         uint32_t pc = arm_read_register(p, 15);
-        arm_write_register(p, 14, pc);
+        if(get_bit(ins, 5) == 1) arm_write_register(p, 14, pc);
 
-        uint32_t cpsr = arm_read_cpsr(p);
-        cpsr = (cpsr & 0xFFFFFFDF) | (get_bit(rm_data, 0) << 5);
-        arm_write_cpsr(p, cpsr);
-
-        pc = rm_data & 0xFFFFFFFE;
-        arm_write_register(p, 15, pc);
-    }
-    return 0;
-}
-
-int bx_procedure(arm_core p, uint32_t ins){
-    if(conditionPassed(p, ins)){
-        uint32_t rm_data = arm_read_register(p, get_bits(ins, 3, 0));
-        uint32_t pc = arm_read_register(p, 15);
-        
         uint32_t cpsr = arm_read_cpsr(p);
         cpsr = (cpsr & 0xFFFFFFDF) | (get_bit(rm_data, 0) << 5);
         arm_write_cpsr(p, cpsr);
@@ -99,17 +76,14 @@ int bx_procedure(arm_core p, uint32_t ins){
 
 int arm_branch(arm_core p, uint32_t ins) {
     if(get_bits(ins, 27, 25) == 5){
-        if(get_bits(ins, 31, 28) == 15) blx1_procedure(p, ins);
-        else bl_procedure(p, ins);
+        blx1_procedure(p, ins);
     }else return UNDEFINED_INSTRUCTION;
     return 0;
 }
 
 int arm_branch_misc(arm_core p, uint32_t ins){
     if(get_bits(ins, 27, 20) == 0x12){
-        if(get_bits(ins, 7, 4) == 3) blx2_procedure(p, ins);
-        else if(get_bits(ins, 7, 4) == 1) bx_procedure(p, ins);
-        else return UNDEFINED_INSTRUCTION;
+        blx2_procedure(p, ins);
     }else return UNDEFINED_INSTRUCTION;
     return 0;
 }
@@ -121,9 +95,5 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
             exit(0);
         return SOFTWARE_INTERRUPT;
     } 
-    return UNDEFINED_INSTRUCTION;
-}
-
-int arm_miscellaneous(arm_core p, uint32_t ins) {
     return UNDEFINED_INSTRUCTION;
 }

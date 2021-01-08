@@ -26,16 +26,13 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_core.h"
 
 int get_bit_24(uint32_t ins);
-uint32_t calcBLTargetAddress(uint32_t ins);
-uint32_t calcBLXTargetAddress(uint32_t ins);
-int bl_procedure(arm_core p, uint32_t ins);
+uint32_t calcBLTargetAddress(uint32_t ins, int mode);
+
 int blx1_procedure(arm_core p, uint32_t ins);
 int blx2_procedure(arm_core p, uint32_t ins);
-int bx_procedure(arm_core p, uint32_t ins);
 
 int arm_branch(arm_core p, uint32_t ins);
 int arm_branch_misc(arm_core p, uint32_t ins);
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins);
-int arm_miscellaneous(arm_core p, uint32_t ins);
 
 #endif
