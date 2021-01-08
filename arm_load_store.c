@@ -150,7 +150,7 @@ int refreshRnByOffset(arm_core p, uint32_t ins, uint32_t addr){
         if(isImmediateOffset(ins)) {
             if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
             else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
-        }else if(isRegisterOffset(ins)){ 
+        }else if(isRegisterOffset(ins)){
             if(isPreIndexed(ins)) arm_write_register(p, get_Rn(ins), addr);
             else if(isPostIndexed(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
         }else if(isScaledOffset(ins)){
@@ -215,18 +215,19 @@ int refreshMiscRnByOffset(arm_core p, uint32_t ins, uint32_t addr){
     return 0;
 }
 
-// LDR : Load a 32-bit word. 
+// LDR : Load a 32-bit word.
 int load_Word(arm_core p, uint32_t ins){
     uint32_t data;
     uint32_t addr = getAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
-    if(conditionPassed(p, ins)) {
-        arm_read_word(p, addr, &data);
-        if(rd == 15){
-            arm_write_register(p, rd, data & 0xFFFFFFFE);
-            uint32_t cpsrModded = (arm_read_cpsr(p) & 0xFFFFFFDF) | (get_bit(data, 0) << 5);
+    //MemoryAccess(B-bit, E-bit)
+    if(conditionPassed(p, ins)) {//if ConditionPassed(cond) then
+        arm_read_word(p, addr, &data);//data = Memory[address,4] Rotate_Right (8 * address[1:0])
+        if(rd == 15){//if (Rd is R15) then
+            arm_write_register(p, rd, data & 0xFFFFFFFE);//PC = data AND 0xFFFFFFFE
+            uint32_t cpsrModded = (arm_read_cpsr(p) & 0xFFFFFFDF) | (get_bit(data, 0) << 5);//T Bit = data[0]
             arm_write_cpsr(p, cpsrModded);
-        }else arm_write_register(p, rd, data);
+        }else arm_write_register(p, rd, data);//Rd = data
     }
     refreshRnByOffset(p, ins, addr);
     return 0;
@@ -237,9 +238,11 @@ int load_Byte(arm_core p, uint32_t ins){
     uint8_t data;
     uint32_t addr = getAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
-    if(conditionPassed(p, ins)) {
+    //MemoryAccess(B-bit, E-bit)
+    if(conditionPassed(p, ins)) {//if ConditionPassed(cond) then
         arm_read_byte(p, addr, &data);
         arm_write_register(p, rd, data);
+        //Rd = Memory[address,1]
     }
     refreshRnByOffset(p, ins, addr);
     return 0;
@@ -252,14 +255,17 @@ int load_Byte_Trans(arm_core p, uint32_t ins){
     uint32_t addr = arm_read_register(p, get_Rn(ins));
 
     uint8_t rd = get_Rd(ins);
-    if(conditionPassed(p, ins)) {
+    if(conditionPassed(p, ins)) {//if ConditionPassed(cond) then
         arm_read_byte(p, addr, &data);
         arm_write_usr_register(p, rd, data);
+        //Rd = Memory[address,1]
     }
     if(conditionPassed(p, ins)){
         if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
         else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
         else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
+        //Rn = address
+        //<post_indexed_addressing_mode>
     }
     return 0;
 }
@@ -270,15 +276,16 @@ int load_Double_Word(arm_core p, uint32_t ins){
     uint32_t data1, data2;
     uint32_t addr = getMiscAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
-    if(conditionPassed(p, ins)) {
-        if((rd % 2 == 0) && (rd != 14)){
-            if((get_bits(addr, 1, 0) == 0) && (get_bit(addr, 2) == 0)){
+    //MemoryAccess(B-bit, E-bit)
+    if(conditionPassed(p, ins)) {//if ConditionPassed(cond) then
+        if((rd % 2 == 0) && (rd != 14)){ //if (Rd is even-numbered) and (Rd is not R14) and
+            if((get_bits(addr, 1, 0) == 0) && (get_bit(addr, 2) == 0)){//(address[1:0] == 0b00) and(address[2] == 0)) then
                 arm_read_word(p, addr, &data1);
                 arm_read_word(p, addr + 4, &data2);
-                arm_write_register(p, rd, data1);
-                arm_write_register(p, rd+1, data2);
+                arm_write_register(p, rd, data1);//Rd = Memory[address,4]
+                arm_write_register(p, rd+1, data2);//R(d+1) = memory[address+4,4]
             }
-        }else return UNDEFINED_INSTRUCTION;
+        }else return UNDEFINED_INSTRUCTION;//UNPREDICTABLE
     }
     refreshMiscRnByOffset(p, ins, addr);
     return 0;
@@ -291,12 +298,13 @@ int load_Half(arm_core p, uint32_t ins){
     uint16_t data;
     uint32_t addr = getMiscAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
+    //MemoryAccess(B-bit, E-bit)
     if(conditionPassed(p, ins)) {
-        if(get_bit(addr, 0) == 0) arm_read_half(p, addr, &data);
-        else return UNDEFINED_INSTRUCTION;
+        if(get_bit(addr, 0) == 0) arm_read_half(p, addr, &data);//if address[0] == 0 thend ata = Memory[address,2]
+        else return UNDEFINED_INSTRUCTION;//else data = UNPREDICTABLE
         arm_write_register(p, rd, data);
     }
-    refreshMiscRnByOffset(p, ins, addr);
+    refreshMiscRnByOffset(p, ins, addr);//Rd = ZeroExtend(data[15:0])
     return 0;
 }
 
@@ -306,11 +314,14 @@ int load_Signed_Byte(arm_core p, uint32_t ins){
     uint32_t data32;
     uint32_t addr = getMiscAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
+    //MemoryAccess(B-bit, E-bit)
     if(conditionPassed(p, ins)) {
         arm_read_byte(p, addr, &data);
-        if(get_bit(data, 7) == 0) data32 = data;
+        if(get_bit(data, 7) == 0) data32 = data;//data = Memory[address,1]
+
         else data32 = data | 0xFFFFFF00;
         arm_write_register(p, rd, data32);
+        //Rd = SignExtend(data)
     }
     refreshMiscRnByOffset(p, ins, addr);
     return 0;
@@ -322,13 +333,16 @@ int load_Signed_Half(arm_core p, uint32_t ins){
     uint32_t data32;
     uint32_t addr = getMiscAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
-    if(conditionPassed(p, ins)) {
-        if(get_bit(addr, 0) == 0) arm_read_half(p, addr, &data);
-        else return UNDEFINED_INSTRUCTION;
+    //MemoryAccess(B-bit, E-bit)
+    if(conditionPassed(p, ins)) {//if ConditionPassed(cond) then
+        if(get_bit(addr, 0) == 0) arm_read_half(p, addr, &data);//if address[0] == 0 then data = Memory[address,2]
+        else return UNDEFINED_INSTRUCTION;//else data = UNPREDICTABLE
 
         if(get_bit(data, 15) == 0) data32 = data;
+
         else data32 = data | 0xFFFF0000;
         arm_write_register(p, rd, data32);
+        //Rd = SignExtend(data[15:0])
     }
     refreshMiscRnByOffset(p, ins, addr);
     return 0;
@@ -344,16 +358,17 @@ int load_Word_Trans(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)) {
         arm_read_word(p, addr, &data);
         arm_write_usr_register(p, rd, data);
+        //Rd = Memory[address,4] Rotate_Right (8 * address[1:0])
     }
     if(conditionPassed(p, ins)){
         if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
         else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
         else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
-    }
+    }//<post_indexed_addressing_mode>
     return 0;
 }
 
-// STR : Load a 32-bit word. 
+// STR : Load a 32-bit word.
 int store_Word(arm_core p, uint32_t ins){
     uint32_t data;
     uint32_t addr = getAddrByOffset(p, ins);
@@ -361,12 +376,13 @@ int store_Word(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)) {
         data = arm_read_register(p, rd);
         arm_write_word(p, addr, data);
+        //Memory[address,4] = Rd
     }
     refreshRnByOffset(p, ins, addr);
     return 0;
 }
 
-// STRB : Load a 8-bit byte from the least significant byte of a register. 
+// STRB : Load a 8-bit byte from the least significant byte of a register.
 int store_Byte(arm_core p, uint32_t ins){
     uint8_t data;
     uint32_t addr = getAddrByOffset(p, ins);
@@ -374,12 +390,13 @@ int store_Byte(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)) {
         data = arm_read_register(p, rd) & 0xFF;
         arm_write_byte(p, addr, data);
+        //Memory[address,1] = Rd[7:0]
     }
     refreshRnByOffset(p, ins, addr);
     return 0;
 }
 
-// STRBT : Load a 8-bit byte with translation. 
+// STRBT : Load a 8-bit byte with translation.
 int store_Byte_Trans(arm_core p, uint32_t ins){
     if(get_bit(ins, 24) != 0 || get_bit(ins, 21) != 1) return 2;
     uint8_t data;
@@ -388,12 +405,13 @@ int store_Byte_Trans(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)) {
         data = arm_read_usr_register(p, rd) & 0xFF;
         arm_write_byte(p, addr, data);
+        //Memory[address,1] = Rd[7:0]
     }
     if(conditionPassed(p, ins)){
         if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
         else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
         else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
-    }
+    }//<post_indexed_addressing_mode>
     return 0;
 }
 
@@ -404,14 +422,14 @@ int store_Double_Word(arm_core p, uint32_t ins){
     uint32_t addr = getMiscAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
-        if((rd % 2 == 0) && (rd != 14)){
-            if((get_bits(addr, 1, 0) == 0) && (get_bit(addr, 2) == 0)){
-                data1 = arm_read_register(p, rd);
-                data2 = arm_read_register(p, rd + 1);
+        if((rd % 2 == 0) && (rd != 14)){//if (Rd is even-numbered) and (Rd is not R14) and
+            if((get_bits(addr, 1, 0) == 0) && (get_bit(addr, 2) == 0)){//if (address[1:0] == 0b00) and (address[2] == 0)) then
+                data1 = arm_read_register(p, rd);//Memory[address,4] = Rd
+                data2 = arm_read_register(p, rd + 1);//Memory[address+4,4] = R(d+1)
                 arm_write_word(p, addr, data1);
                 arm_write_word(p, addr + 4, data2);
             }
-        }else return UNDEFINED_INSTRUCTION;
+        }else return UNDEFINED_INSTRUCTION;//else UNPREDICTABLE
     }
     refreshMiscRnByOffset(p, ins, addr);
     return 0;
@@ -425,8 +443,8 @@ int store_Half(arm_core p, uint32_t ins){
     uint32_t addr = getMiscAddrByOffset(p, ins);
     uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
-        if(get_bit(addr, 0) == 0) data = arm_read_register(p,rd);
-        else return UNDEFINED_INSTRUCTION;
+        if(get_bit(addr, 0) == 0) data = arm_read_register(p,rd);//if address[0] == 0b0 then Memory[address,2] = Rd[15:0]
+        else return UNDEFINED_INSTRUCTION;//Memory[address,2] = Rd[15:0]
         arm_write_half(p, addr, data);
     }
     refreshMiscRnByOffset(p, ins, addr);
@@ -440,14 +458,14 @@ int store_Word_Trans(arm_core p, uint32_t ins){
     uint32_t addr = arm_read_register(p, get_Rn(ins));
     uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
-        data = arm_read_usr_register(p, rd) & 0xFF;
+        data = arm_read_usr_register(p, rd) & 0xFF;//Memory[address,4] = Rd
         arm_write_word(p, addr, data);
     }
     if(conditionPassed(p, ins)){
         if(isImmediateOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Imm_Offset(p, ins));
         else if(isRegisterOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Reg_Offset(p, ins));
         else if(isScaledOffset(ins)) arm_write_register(p, get_Rn(ins), addr_Sca_Offset(p, ins));
-    }
+    }//<post_indexed_addressing_mode>
     return 0;
 }
 
@@ -460,14 +478,14 @@ int arm_load_store(arm_core p, uint32_t ins) {
     int bit7 = get_bit(ins, 7);
     int bit6 = get_bit(ins, 6); // S bit
     int bit5 = get_bit(ins, 5); // H bit
-    int bit4 = get_bit(ins, 4); 
+    int bit4 = get_bit(ins, 4);
 
-    if(bit27 == 0 && bit26 == 1){ 
+    if(bit27 == 0 && bit26 == 1){
         // Load and store word or unsigned byte instructions
         if(bit22 == 1 && bit20 == 1){
             if(get_bit(ins, 24) == 0 && get_bit(ins, 21) == 1) load_Byte_Trans(p, ins); // LDRBT
             else load_Byte(p, ins); // LDRB
-        } 
+        }
         else if(bit22 == 1 && bit20 == 0) {
             if(get_bit(ins, 24) == 0 && get_bit(ins, 21) == 1) store_Byte_Trans(p, ins); // STRBT
             else store_Byte(p, ins); //STRB
@@ -475,7 +493,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
         else if(bit22 == 0 && bit20 == 1){
             if(get_bit(ins, 24) == 0 && get_bit(ins, 21) == 1) load_Word_Trans(p, ins); // LDRT
             else load_Word(p, ins); // LDR
-        } 
+        }
         else if(bit22 == 0 && bit20 == 0){
             if(get_bit(ins, 24) == 0 && get_bit(ins, 21) == 1) store_Word_Trans(p, ins); // STRT
             else store_Word(p, ins); // STR
@@ -532,28 +550,31 @@ uint32_t getEndAddress(arm_core p, uint32_t ins){
     }
 }
 
-// LDM (1) (Load Multiple) loads a non-empty subset, or possibly all, 
+// LDM (1) (Load Multiple) loads a non-empty subset, or possibly all,
 // of the general-purpose registers from sequential memory locations.
 int ldm1(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint32_t data = 0;
         uint32_t startAddr = getStartAddress(p, ins);
-        uint32_t currAddr = startAddr;
-        for(int i=0; i<15; i++){
-            if(get_bit(ins, i) == 1){
+        uint32_t currAddr = startAddr;//address = start_address
+
+        for(int i=0; i<15; i++){//for i = 0 to 14
+            if(get_bit(ins, i) == 1){//if register_list[i] == 1 then
                 arm_read_word(p, currAddr, &data);
                 arm_write_register(p, i, data);
-                currAddr = currAddr + 4;
+                //Ri = Memory[address,4]
+                currAddr = currAddr + 4;//address = address + 4
             }
         }
-        if(get_bit(ins, 15) == 1){
-            arm_read_word(p, currAddr, &data);
-            arm_write_register(p, 15, data & 0xFFFFFFFE);
-            uint32_t cpsrModded = (arm_read_cpsr(p) & 0xFFFFFFDF) | (get_bit(data, 0) << 5);
+        if(get_bit(ins, 15) == 1){//if register_list[15] == 1 then
+            arm_read_word(p, currAddr, &data);//value = Memory[address,4]
+            arm_write_register(p, 15, data & 0xFFFFFFFE);//pc = value AND 0xFFFFFFFE
+            uint32_t cpsrModded = (arm_read_cpsr(p) & 0xFFFFFFDF) | (get_bit(data, 0) << 5);//T Bit = value[0]
             arm_write_cpsr(p, cpsrModded);
-            currAddr = currAddr + 4;
+            currAddr = currAddr + 4;//address = address + 4
+
         }
-        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
     }
     return 0;
 }
@@ -563,76 +584,85 @@ int ldm2(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint32_t data = 0;
         uint32_t startAddr = getStartAddress(p, ins);
-        uint32_t currAddr = startAddr;
-        for(int i=0; i<15; i++){
-            if(get_bit(ins, i) == 1){
+        uint32_t currAddr = startAddr;//address = start_address
+        for(int i=0; i<15; i++){//for i = 0 to 14
+            if(get_bit(ins, i) == 1){//if register_list[i] == 1
                 arm_read_word(p, currAddr, &data);
                 arm_write_usr_register(p, i, data);
-                currAddr = currAddr + 4;
+                //Ri_usr = Memory[address,4]
+                currAddr = currAddr + 4;//address = address + 4
             }
         }
-        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
     }
     return 0;
 }
 
-// LDM (3) loads a subset, or possibly all, 
+// LDM (3) loads a subset, or possibly all,
 // of the general-purpose registers and the PC from sequential memory locations.
 int ldm3(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint32_t data = 0;
         uint32_t startAddr = getStartAddress(p, ins);
-        uint32_t currAddr = startAddr;
-        for(int i=0; i<15; i++){
-            if(get_bit(ins, i) == 1){
+        uint32_t currAddr = startAddr;//address = start_address
+        for(int i=0; i<15; i++){//for i = 0 to 14
+            if(get_bit(ins, i) == 1){//if register_list[i] == 1 then
                 arm_read_word(p, currAddr, &data);
                 arm_write_register(p, i, data);
+                //Ri = Memory[address,4]
                 currAddr = currAddr + 4;
+                //address = address + 4
             }
         }
-        
-        if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
 
-        uint32_t value = 0;
+        if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
+        //if CurrentModeHasSPSR() then CPSR = SPSR
+        uint32_t value = 0;//value = Memory[address,4]
         arm_read_word(p, currAddr, &value);
         arm_write_register(p, 15, value);
-        currAddr = currAddr + 4;
+        //PC = value
+        currAddr = currAddr + 4;//address = address + 4
 
-        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
     }
     return 0;
 }
 
-// STM (1) (Store Multiple) stores a non-empty subset (or possibly all) 
-// of the general-purpose registers to sequential memory locations. 
+// STM (1) (Store Multiple) stores a non-empty subset (or possibly all)
+// of the general-purpose registers to sequential memory locations.
 int stm1(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint32_t data = 0;
         uint32_t startAddr = getStartAddress(p, ins);
-        uint32_t currAddr = startAddr;
-        for(int i =0; i<16; i++){
+        uint32_t currAddr = startAddr;//address = start_address
+         for(int i =0; i<16; i++){//for i = 0 to 15
             data = arm_read_register(p, i);
             arm_write_word(p, currAddr, data);
+            //Memory[address,4] = Ri
             currAddr = currAddr + 4;
+            //address = address + 4
         }
-        if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+        if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
     }
     return 0;
 }
 
-// STM (2) stores a subset (or possibly all) of the User mode 
+// STM (2) stores a subset (or possibly all) of the User mode
 // general-purpose registers to sequential memory locations.
 int stm2(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint32_t data = 0;
         uint32_t startAddr = getStartAddress(p, ins);
-        uint32_t currAddr = startAddr;
-        for(int i =0; i<16; i++){
+        uint32_t currAddr = startAddr;//address = start_address
+        for(int i =0; i<16; i++){//for i = 0 to 15
             data = arm_read_usr_register(p, i);
             arm_write_word(p, currAddr, data);
+            //Memory[address,4] = Ri_usr
             currAddr = currAddr + 4;
+            //address = address + 4
         }
         if(currAddr - 4 != getEndAddress(p, ins)) return 1;
+        //assert end_address == address - 4
     }
     return 0;
 }
@@ -646,7 +676,7 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
     int bit21 = get_bit(ins, 21); // W bit
     int bit20 = get_bit(ins, 20); // L bit
     int bit15 = get_bit(ins, 15); // PC Reg
-    
+
     if(bit27 == 1 && bit26 == 0 && bit25 == 0){
         {
             if(bit22 == 0 && bit20 == 1) ldm1(p, ins);
