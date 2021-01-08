@@ -104,6 +104,7 @@ int stm1(arm_core p, uint32_t ins);
 int stm2(arm_core p, uint32_t ins);
 
 int arm_load_store(arm_core p, uint32_t ins);
+int arm_load_store_extra(arm_core p, uint32_t ins);
 int arm_load_store_multiple(arm_core p, uint32_t ins);
 int arm_coprocessor_load_store(arm_core p, uint32_t ins);
 

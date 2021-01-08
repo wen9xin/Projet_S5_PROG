@@ -101,14 +101,19 @@ int arm_branch(arm_core p, uint32_t ins) {
     if(get_bits(ins, 27, 25) == 5){
         if(get_bits(ins, 31, 28) == 15) blx1_procedure(p, ins);
         else bl_procedure(p, ins);
-    }else if(get_bits(ins, 27, 20) == 0x12){
+    }else return UNDEFINED_INSTRUCTION;
+    return 0;
+}
+
+int arm_branch_misc(arm_core p, uint32_t ins){
+    if(get_bits(ins, 27, 20) == 0x12){
         if(get_bits(ins, 7, 4) == 3) blx2_procedure(p, ins);
         else if(get_bits(ins, 7, 4) == 1) bx_procedure(p, ins);
         else return UNDEFINED_INSTRUCTION;
     }else return UNDEFINED_INSTRUCTION;
     return 0;
 }
-
+    
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
     if (get_bit(ins, 24)) {
         /* Here we implement the end of the simulation as swi 0x123456 */

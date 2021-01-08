@@ -29,18 +29,63 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 
 static int arm_execute_instruction(arm_core p) {
-    uint32_t mot;
-	uint32_t instructionType;
-	arm_fetch(p, &mot);
-	printf("test\n");
+    uint32_t ins;
+	uint32_t insType;
+	arm_fetch(p, &ins);
+	printf("Exe:\n");
 
-	instructionType = get_bits(mot,27,26);
+	insType = get_bits(ins, 27, 25);
 
-    switch(instructionType){
-        case 0 : // Miscellaneous Instructions
-            
+    switch(insType){
+        case 0:
+            if(get_bit(ins, 7) && get_bit(ins, 4)){
+                // Extra Load/Store
+                printf("case 0, lsExtra\n");
+                arm_load_store_extra(p, ins);
+            }else if(get_bits(ins, 24, 23) == 2 && get_bit(ins, 4) == 0){
+                // Miscellaneous instructions part 1
+                printf("unimplemented, nothing done.\n");
+            }else if (get_bits(ins, 24, 23) == 2 && get_bit(ins, 4) == 1 && get_bit(ins, 7) == 0){
+                // Miscellaneous instructions part 2
+                printf("case 0, branchMisc\n");
+                arm_branch_misc(p, ins);
+            }else {
+                // Data processing
+                printf("case 0, dataProcessing\n");
+                arm_data_processing(p, ins);
+            }
+            break;
 
+        case 1:
+            printf("case 1, dataProcessing\n");
+            arm_data_processing(p, ins);
+            break;
+
+        case 4: // Load Store Multiple
+            printf("case 4, lsMultiple\n");
+            arm_load_store_multiple(p, ins);
+            break;
+
+        case 5: // Branch & Branche with link
+            printf("case 5, branch\n");
+            arm_branch(p, ins);
+            break;
+        
+        case 6: // Not implemented
+            printf("case 6, nothing done\n");
+            break;
+        
+        case 7 : // Software interrupt (swi)
+            printf("case 7, swi\n");
+			arm_coprocessor_others_swi(p, ins);
+			break;
+        
+        default: // case 2 or 3 : Load Store
+            printf("case 2/3, ls\n");
+            arm_load_store(p, ins);
+            break;
     }
+    return 0;
 }
 
 int arm_step(arm_core p) {

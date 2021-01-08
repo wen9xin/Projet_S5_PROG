@@ -475,10 +475,6 @@ int arm_load_store(arm_core p, uint32_t ins) {
     int bit25 = get_bit(ins, 25);
     int bit22 = get_bit(ins, 22); // B bit
     int bit20 = get_bit(ins, 20); // L bit
-    int bit7 = get_bit(ins, 7);
-    int bit6 = get_bit(ins, 6); // S bit
-    int bit5 = get_bit(ins, 5); // H bit
-    int bit4 = get_bit(ins, 4);
 
     if(bit27 == 0 && bit26 == 1){
         // Load and store word or unsigned byte instructions
@@ -498,8 +494,21 @@ int arm_load_store(arm_core p, uint32_t ins) {
             if(get_bit(ins, 24) == 0 && get_bit(ins, 21) == 1) store_Word_Trans(p, ins); // STRT
             else store_Word(p, ins); // STR
         } else return UNDEFINED_INSTRUCTION;
+    }else return UNDEFINED_INSTRUCTION;
+    return 0;
+}
 
-    }else if(bit27 == 0 && bit26 == 0 && bit25 == 0 && bit7 == 1 && bit4 == 1){
+
+int arm_load_store_extra(arm_core p, uint32_t ins) {
+    int bit27 = get_bit(ins, 27);
+    int bit26 = get_bit(ins, 26);
+    int bit25 = get_bit(ins, 25);
+    int bit20 = get_bit(ins, 20); // L bit
+    int bit7 = get_bit(ins, 7);
+    int bit6 = get_bit(ins, 6); // S bit
+    int bit5 = get_bit(ins, 5); // H bit
+    int bit4 = get_bit(ins, 4);
+    if(bit27 == 0 && bit26 == 0 && bit25 == 0 && bit7 == 1 && bit4 == 1){
         if(bit20 == 0 && bit6 == 1 && bit5 == 0) load_Double_Word(p, ins); // LDRD
         else if(bit20 == 1 && bit6 == 0 && bit5 == 1) load_Half(p, ins); // LDRH
         else if(bit20 == 1 && bit6 == 0 && bit5 == 1) load_Signed_Byte(p, ins); // LDRSB
@@ -508,7 +517,6 @@ int arm_load_store(arm_core p, uint32_t ins) {
         else if(bit20 == 0 && bit6 == 0 && bit5 == 1) store_Half(p, ins); // STRH
         else return UNDEFINED_INSTRUCTION;
     }else return UNDEFINED_INSTRUCTION;
-    return 0;
 }
 
 // Function for Addressing Mode 4
@@ -677,16 +685,12 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
     int bit20 = get_bit(ins, 20); // L bit
     int bit15 = get_bit(ins, 15); // PC Reg
 
-    if(bit27 == 1 && bit26 == 0 && bit25 == 0){
-        {
-            if(bit22 == 0 && bit20 == 1) ldm1(p, ins);
-            else if (bit22 == 1 && bit20 == 1 && bit15 == 0) ldm2(p, ins);
-            else if (bit22 == 1 && bit20 == 1 && bit15 == 1) ldm3(p, ins);
-            else if (bit22 == 0 && bit20 == 0) stm1(p, ins);
-            else if (bit22 == 1 && bit21 == 0 && bit20 == 0) stm2(p, ins);
-            else return UNDEFINED_INSTRUCTION;
-        }
-    }
+    if(bit22 == 0 && bit20 == 1) ldm1(p, ins);
+    else if (bit22 == 1 && bit20 == 1 && bit15 == 0) ldm2(p, ins);
+    else if (bit22 == 1 && bit20 == 1 && bit15 == 1) ldm3(p, ins);
+    else if (bit22 == 0 && bit20 == 0) stm1(p, ins);
+    else if (bit22 == 1 && bit21 == 0 && bit20 == 0) stm2(p, ins);
+    else return UNDEFINED_INSTRUCTION;
     return 0;
 }
 
