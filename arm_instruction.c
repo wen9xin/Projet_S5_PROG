@@ -30,13 +30,17 @@ Contact: Guillaume.Huard@imag.fr
 
 static int arm_execute_instruction(arm_core p) {
     uint32_t mot;
-	uint32_t typeInstruc;
-	uint8_t immediat;
+	uint32_t instructionType;
 	arm_fetch(p, &mot);
 	printf("test\n");
 
-	typeInstruc = get_bits(mot,27,26);
-	immediat = get_bit(mot,25);
+	instructionType = get_bits(mot,27,26);
+
+    switch(instructionType){
+        case 0 : // Miscellaneous Instructions
+            
+
+    }
 }
 
 int arm_step(arm_core p) {
