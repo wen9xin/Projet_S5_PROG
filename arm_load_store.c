@@ -472,7 +472,6 @@ int store_Word_Trans(arm_core p, uint32_t ins){
 int arm_load_store(arm_core p, uint32_t ins) {
     int bit27 = get_bit(ins, 27);
     int bit26 = get_bit(ins, 26);
-    int bit25 = get_bit(ins, 25);
     int bit22 = get_bit(ins, 22); // B bit
     int bit20 = get_bit(ins, 20); // L bit
 
@@ -517,6 +516,7 @@ int arm_load_store_extra(arm_core p, uint32_t ins) {
         else if(bit20 == 0 && bit6 == 0 && bit5 == 1) store_Half(p, ins); // STRH
         else return UNDEFINED_INSTRUCTION;
     }else return UNDEFINED_INSTRUCTION;
+    return 0;
 }
 
 // Function for Addressing Mode 4
@@ -677,9 +677,6 @@ int stm2(arm_core p, uint32_t ins){
 
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    int bit27 = get_bit(ins, 27);
-    int bit26 = get_bit(ins, 26);
-    int bit25 = get_bit(ins, 25);
     int bit22 = get_bit(ins, 22); // S bit
     int bit21 = get_bit(ins, 21); // W bit
     int bit20 = get_bit(ins, 20); // L bit
