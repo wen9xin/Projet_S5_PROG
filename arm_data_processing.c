@@ -434,7 +434,7 @@ uint32_t cmptst_procedure(arm_core p, uint32_t ins){
 /* Decoding functions for different classes of instructions */
 int arm_data_processing(arm_core p, uint32_t ins) {
 	if(isAdds(ins) || isSubs(ins)) calcs_procedure(p, ins);
-	else if(isBitwises(ins)) bits_procedure(p, ins);
+	else if(isBitwises(ins)) bitwise_procedure(p, ins);
 	else if(isComp(ins) || isTest(ins)) cmptst_procedure(p, ins);
 	else return UNDEFINED_INSTRUCTION;
 	return 0;
