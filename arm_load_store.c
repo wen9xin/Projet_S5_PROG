@@ -415,7 +415,7 @@ int store_Byte_Trans(arm_core p, uint32_t ins){
     return 0;
 }
 
-// STRD : tores a pair of ARM registers to two consecutive words of memory..
+// STRD : tores a pair of ARM registers to two consecutive words of memory.
 // Dont know what "CP15_reg1_Ubit" is, so we didnt implement it.
 int store_Double_Word(arm_core p, uint32_t ins){
     uint32_t data1, data2;

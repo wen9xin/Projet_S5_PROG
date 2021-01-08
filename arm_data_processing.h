@@ -82,22 +82,16 @@ int get_carry(arm_core p, int32_t number1, int32_t number2, int condition);
 int get_borrow(arm_core p, int32_t number1, int32_t number2, int condition);
 int get_overflow_flag(int32_t number1, int32_t number2, int32_t res);
 int32_t unsigned_to_signed(uint32_t uns);
-uint32_t adc_procedure(arm_core p, uint32_t ins);
-uint32_t add_procedure(arm_core p, uint32_t ins);
-uint32_t and_procedure(arm_core p, uint32_t ins);
-uint32_t bic_procedure(arm_core p, uint32_t ins);
-uint32_t cmn_procedure(arm_core p, uint32_t ins);
-uint32_t cmp_procedure(arm_core p, uint32_t ins);
-uint32_t eor_procedure(arm_core p, uint32_t ins);
-uint32_t mov_procedure(arm_core p, uint32_t ins);
-uint32_t mvn_procedure(arm_core p, uint32_t ins);
-uint32_t orr_procedure(arm_core p, uint32_t ins);
-uint32_t rsb_procedure(arm_core p, uint32_t ins);
-uint32_t rsc_procedure(arm_core p, uint32_t ins);
-uint32_t sbc_procedure(arm_core p, uint32_t ins);
-uint32_t sub_procedure(arm_core p, uint32_t ins);
-uint32_t teq_procedure(arm_core p, uint32_t ins);
-uint32_t tst_procedure(arm_core p, uint32_t ins);
+
+int isAdds(uint32_t ins);
+int isSubs(uint32_t ins);
+int isBitwises(uint32_t ins);
+int isTest(uint32_t ins);
+int isComp(uint32_t ins);
+
+uint32_t calcs_procedure(arm_core p, uint32_t ins);
+uint32_t bitwise_procedure(arm_core p, uint32_t ins);
+uint32_t cmptst_procedure(arm_core p, uint32_t ins);
 
 /* Decoding functions for different classes of instructions */
 int arm_data_processing(arm_core p, uint32_t ins);

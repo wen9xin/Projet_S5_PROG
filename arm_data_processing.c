@@ -141,23 +141,6 @@ uint64_t lsl_reg(arm_core p, uint32_t ins){
 	return res;
 }
 
-// Data-processing operands - Logical shift right by immediate
-uint64_t lsr_imm(arm_core p, uint32_t ins){
-	uint32_t rm_data = arm_read_register(p, get_bits(ins, 3, 0));
-	uint8_t shift_imm = get_bits(ins, 11, 7);
-	uint32_t shifter_operand = 0;
-	uint32_t shifter_carry_out = 0;
-	if(shift_imm == 0){
-		shifter_operand = 0;
-		shifter_carry_out = get_bit(rm_data, 31);
-	}else{
-		shifter_operand = rm_data >> shift_imm;
-		shifter_carry_out = get_bit(rm_data, shift_imm - 1);
-	}
-	uint64_t res = packing_shifter(shifter_operand, shifter_carry_out);
-	return res;
-}
-
 // Data-processing operands - Logical shift right by register
 uint64_t lsr_reg(arm_core p, uint32_t ins){
 	uint8_t rs_7_0_data = arm_read_register(p, get_bits(ins, 11, 8)) & 0xFF;
@@ -180,6 +163,24 @@ uint64_t lsr_reg(arm_core p, uint32_t ins){
 	uint64_t res = packing_shifter(shifter_operand, shifter_carry_out);
 	return res;
 }
+
+// Data-processing operands - Logical shift right by immediate
+uint64_t lsr_imm(arm_core p, uint32_t ins){
+	uint32_t rm_data = arm_read_register(p, get_bits(ins, 3, 0));
+	uint8_t shift_imm = get_bits(ins, 11, 7);
+	uint32_t shifter_operand = 0;
+	uint32_t shifter_carry_out = 0;
+	if(shift_imm == 0){
+		shifter_operand = 0;
+		shifter_carry_out = get_bit(rm_data, 31);
+	}else{
+		shifter_operand = rm_data >> shift_imm;
+		shifter_carry_out = get_bit(rm_data, shift_imm - 1);
+	}
+	uint64_t res = packing_shifter(shifter_operand, shifter_carry_out);
+	return res;
+}
+
 
 // Data-processing operands - Arithmetic shift right by immediate
 uint64_t asr_imm(arm_core p, uint32_t ins){
@@ -337,20 +338,45 @@ int32_t unsigned_to_signed(uint32_t uns) {
 	return signednumber;
 }
 
-uint32_t adc_procedure(arm_core p, uint32_t ins){
+int isAdds(uint32_t ins){
+	return get_opcode(ins) == 4 || get_opcode(ins) == 5;
+}
+
+int isSubs(uint32_t ins){
+	return get_opcode(ins) == 2 || get_opcode(ins) == 6 || get_opcode(ins) == 3 || get_opcode(ins) == 7;
+}
+
+int isBitwises(uint32_t ins){
+	return get_opcode(ins) == 0 || get_opcode(ins) == 14 || get_opcode(ins) == 1 || get_opcode(ins) == 12 || get_opcode(ins) == 15 || get_opcode(ins) == 13;
+}
+
+int isTest(uint32_t ins){
+	return get_opcode(ins) == 9 || get_opcode(ins) == 8;
+}
+
+int isComp(uint32_t ins){
+	return (get_opcode(ins) == 11 || get_opcode(ins) == 10) && get_bit(ins, 20) == 1;
+}
+
+uint32_t calcs_procedure(arm_core p, uint32_t ins){
 	uint64_t packaged = get_operande_and_carry_out(p, ins);
 	int32_t shifter_operand = get_shifter_operand(packaged);
 	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
 	int32_t rd_data;
 	if(conditionPassed(p, ins)){
-		rd_data = rn_data + shifter_operand + get_cflag(p);
+		if(get_opcode(ins) == 4) rd_data = rn_data + shifter_operand; // ADD
+		if(get_opcode(ins) == 5) rd_data = rn_data + shifter_operand + get_cflag(p);// ADC
+		if(get_opcode(ins) == 2) rd_data = rn_data - shifter_operand; // SUB
+		if(get_opcode(ins) == 6) rd_data = rn_data - shifter_operand - (~get_cflag(p)); // SBC
+		if(get_opcode(ins) == 3) rd_data = shifter_operand - rn_data; // RSB
+		if(get_opcode(ins) == 7) rd_data = shifter_operand - rn_data - (~get_cflag(p)); // RSC
 		arm_write_register(p, get_rd(ins), rd_data);
 		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
 			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
 		}else if(get_s_bit(ins) == 1){
 			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
 			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_carry(p, rn_data, shifter_operand, 1);
+			int c = isAdds(ins) ? get_carry(p, rn_data, shifter_operand, 2) : ~get_borrow(p, shifter_operand, rn_data, 1);
 			int v = get_overflow_flag(rn_data, shifter_operand, rd_data);
 			modify_nzcv(p, n, z, c, v);
 		}
@@ -358,34 +384,18 @@ uint32_t adc_procedure(arm_core p, uint32_t ins){
 	return 0;
 }
 
-uint32_t add_procedure(arm_core p, uint32_t ins){
+uint32_t bitwise_procedure(arm_core p, uint32_t ins){
 	uint64_t packaged = get_operande_and_carry_out(p, ins);
 	int32_t shifter_operand = get_shifter_operand(packaged);
 	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
 	int32_t rd_data;
 	if(conditionPassed(p, ins)){
-		rd_data = rn_data + shifter_operand;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_carry(p, rn_data, shifter_operand, 2);
-			int v = get_overflow_flag(rn_data, shifter_operand, rd_data);
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t and_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = rn_data & shifter_operand;
+		if(get_opcode(ins) == 0) rd_data = rn_data & shifter_operand; // AND
+		if(get_opcode(ins) == 14) rd_data = rn_data & (~shifter_operand); // BIC
+		if(get_opcode(ins) == 1) rd_data = rn_data ^ shifter_operand; // EOR
+		if(get_opcode(ins) == 12) rd_data = rn_data | shifter_operand; // ORR
+		if(get_opcode(ins) == 15) rd_data = ~shifter_operand; // MVN
+		if(get_opcode(ins) == 13) rd_data = shifter_operand; // MOV
 		arm_write_register(p, get_rd(ins), rd_data);
 		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
 			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
@@ -400,247 +410,21 @@ uint32_t and_procedure(arm_core p, uint32_t ins){
 	return 0;
 }
 
-uint32_t bic_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = rn_data & (~shifter_operand);
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_shifter_carry_out(packaged);
-			int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t cmn_procedure(arm_core p, uint32_t ins){
+uint32_t cmptst_procedure(arm_core p, uint32_t ins){
 	uint64_t packaged = get_operande_and_carry_out(p, ins);
 	int32_t shifter_operand = get_shifter_operand(packaged);
 	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
 	if(conditionPassed(p, ins)){
-		int alu_out = rn_data + shifter_operand;
+		int alu_out = 0;
+		if(get_opcode(ins) == 8) alu_out = rn_data & shifter_operand; // TST
+		if(get_opcode(ins) == 9) alu_out = rn_data ^ shifter_operand; // TEQ
+		if(get_opcode(ins) == 10) alu_out = rn_data - shifter_operand; // CMP
+		if(get_opcode(ins) == 11) alu_out = rn_data + shifter_operand; // CMN
 		int n = get_bit(alu_out, 31);
 		int z = alu_out == 0 ? 1 : 0;
-		int c = get_carry(p, rn_data, shifter_operand, 2);
-		int v = get_overflow_flag(rn_data, shifter_operand, alu_out);
-		modify_nzcv(p, n, z, c, v);
-	}
-	return 0;
-}
-
-uint32_t cmp_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	if(conditionPassed(p, ins)){
-		int alu_out = rn_data - shifter_operand;
-		int n = get_bit(alu_out, 31);
-		int z = alu_out == 0 ? 1 : 0;
-		int c = get_borrow(p, rn_data, shifter_operand, 1);
-		int v = get_overflow_flag(rn_data, shifter_operand, alu_out);
-		modify_nzcv(p, n, z, c, v);
-	}
-	return 0;
-}
-
-uint32_t eor_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = rn_data ^ shifter_operand;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_shifter_carry_out(packaged);
-			int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t mov_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = shifter_operand;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_shifter_carry_out(packaged);
-			int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t mvn_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = ~shifter_operand;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_shifter_carry_out(packaged);
-			int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t orr_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = rn_data | shifter_operand;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = get_shifter_carry_out(packaged);
-			int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t rsb_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = shifter_operand - rn_data;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = ~get_borrow(p, shifter_operand, rn_data, 1);
-			int v = get_overflow_flag(shifter_operand, rn_data, rd_data);
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t rsc_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = shifter_operand - rn_data - (~get_cflag(p));
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = ~get_borrow(p, shifter_operand, rn_data, 2);
-			int v = get_overflow_flag(shifter_operand, rn_data, rd_data);
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t sbc_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = rn_data - shifter_operand - (~get_cflag(p));
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = ~get_borrow(p, shifter_operand, rn_data, 2);
-			int v = get_overflow_flag(shifter_operand, rn_data, rd_data);
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t sub_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	int32_t rd_data;
-	if(conditionPassed(p, ins)){
-		rd_data = rn_data - shifter_operand;
-		arm_write_register(p, get_rd(ins), rd_data);
-		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
-			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
-		}else if(get_s_bit(ins) == 1){
-			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = ~get_borrow(p, shifter_operand, rn_data, 1);
-			int v = get_overflow_flag(shifter_operand, rn_data, rd_data);
-			modify_nzcv(p, n, z, c, v);
-		}
-	}
-	return 0;
-}
-
-uint32_t teq_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	if(conditionPassed(p, ins)){
-		int alu_out = rn_data ^ shifter_operand;
-		int n = get_bit(alu_out, 31);
-		int z = alu_out == 0 ? 1 : 0;
-		int c = get_shifter_carry_out(packaged);
-		int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
-		modify_nzcv(p, n, z, c, v);
-	}
-	return 0;
-}
-
-uint32_t tst_procedure(arm_core p, uint32_t ins){
-	uint64_t packaged = get_operande_and_carry_out(p, ins);
-	int32_t shifter_operand = get_shifter_operand(packaged);
-	int32_t rn_data = unsigned_to_signed(arm_read_register(p, get_rn(ins)));
-	if(conditionPassed(p, ins)){
-		int alu_out = rn_data & shifter_operand;
-		int n = get_bit(alu_out, 31);
-		int z = alu_out == 0 ? 1 : 0;
-		int c = get_shifter_carry_out(packaged);
+		int c = 0;
+		if(isTest(ins)) c = get_shifter_carry_out(packaged);
+		else c = (get_opcode(ins) == 10) ? get_carry(p, rn_data, shifter_operand, 2) : get_borrow(p, rn_data, shifter_operand, 1);
 		int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
 		modify_nzcv(p, n, z, c, v);
 	}
@@ -649,23 +433,9 @@ uint32_t tst_procedure(arm_core p, uint32_t ins){
 
 /* Decoding functions for different classes of instructions */
 int arm_data_processing(arm_core p, uint32_t ins) {
-    int opcode = get_bits(ins, 24, 21);
-	if(opcode == 5) adc_procedure(p, ins);
-	else if(opcode == 4) add_procedure(p, ins);
-	else if(opcode == 0) and_procedure(p, ins);
-	else if(opcode == 14) bic_procedure(p, ins);
-	else if(opcode == 11 && get_bit(ins, 20) == 1) cmn_procedure(p, ins);
-	else if(opcode == 10 && get_bit(ins, 20) == 1) cmp_procedure(p, ins);
-	else if(opcode == 1) eor_procedure(p, ins);
-	else if(opcode == 13) mov_procedure(p, ins);
-	else if(opcode == 15) mvn_procedure(p, ins);
-	else if(opcode == 12) orr_procedure(p, ins);
-	else if(opcode == 3) rsb_procedure(p, ins);	
-	else if(opcode == 7) rsc_procedure(p, ins);
-	else if(opcode == 6) sbc_procedure(p, ins);
-	else if(opcode == 2) sub_procedure(p, ins);
-	else if(opcode == 9) teq_procedure(p, ins);
-	else if(opcode == 8) tst_procedure(p, ins);
+	if(isAdds(ins) || isSubs(ins)) calcs_procedure(p, ins);
+	else if(isBitwises(ins)) bits_procedure(p, ins);
+	else if(isComp(ins) || isTest(ins)) cmptst_procedure(p, ins);
 	else return UNDEFINED_INSTRUCTION;
 	return 0;
 }
