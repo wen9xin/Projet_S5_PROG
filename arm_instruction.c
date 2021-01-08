@@ -32,7 +32,6 @@ static int arm_execute_instruction(arm_core p) {
     uint32_t ins;
 	uint32_t insType;
 	arm_fetch(p, &ins);
-	printf("Exe:\n");
 
 	insType = get_bits(ins, 27, 25);
 
