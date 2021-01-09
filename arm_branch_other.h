@@ -30,6 +30,7 @@ uint32_t calcBLTargetAddress(uint32_t ins, int mode);
 
 int blx1_procedure(arm_core p, uint32_t ins);
 int blx2_procedure(arm_core p, uint32_t ins);
+int mrs_procedure(arm_core p,uint32_t ins);
 
 int arm_branch(arm_core p, uint32_t ins);
 int arm_branch_misc(arm_core p, uint32_t ins);
