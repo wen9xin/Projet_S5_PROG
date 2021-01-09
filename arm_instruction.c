@@ -43,7 +43,8 @@ static int arm_execute_instruction(arm_core p) {
                 arm_load_store_extra(p, ins);
             }else if(get_bits(ins, 24, 23) == 2 && get_bit(ins, 4) == 0){
                 // Miscellaneous instructions part 1
-                printf("unimplemented, nothing done.\n");
+                printf("case 0, Misc - MRS\n");
+                arm_miscellaneous(p, ins);
             }else if (get_bits(ins, 24, 23) == 2 && get_bit(ins, 4) == 1 && get_bit(ins, 7) == 0){
                 // Miscellaneous instructions part 2
                 printf("case 0, branchMisc\n");
