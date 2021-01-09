@@ -565,6 +565,7 @@ int updateRn(arm_core p, uint32_t ins){
         rn_data = rn_data + nbSetBits(ins) * 4;
         arm_write_register(p, get_bits(ins, 19, 16), rn_data);
     }
+    return 0;
 }
 
 // LDM (1) (Load Multiple) loads a non-empty subset, or possibly all,
