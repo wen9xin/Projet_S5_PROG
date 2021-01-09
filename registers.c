@@ -137,7 +137,33 @@ uint32_t read_cpsr(registers r) {
 }
 
 uint32_t read_spsr(registers r) {
-    return (r + 32) -> reg_data;
+    // fiq = 17
+    // irq = 18
+    // svc = 19
+    // abt = 23
+    // und = 27
+    uint8_t mode = get_mode(r);
+    switch (mode){
+        case 17 :
+            return (r + 36) -> reg_data;
+            break;
+        case 18 :
+            return (r + 35) -> reg_data;
+            break;
+        case 19 :
+            return (r + 32) -> reg_data;
+            break;
+        case 23 :
+            return (r + 33) -> reg_data;
+            break;
+        case 27 :
+            return (r + 34) -> reg_data;
+            break;
+        default :
+            return -1;
+            break;
+    }
+    return -1;
 }
 
 void write_register(registers r, uint8_t reg, uint32_t value) {
@@ -208,5 +234,24 @@ void write_cpsr(registers r, uint32_t value) {
 }
 
 void write_spsr(registers r, uint32_t value) {
-    (r + 32) -> reg_data = value;
+    uint8_t mode = get_mode(r);
+    switch (mode){
+        case 17 :
+            (r + 36) -> reg_data = value;
+            break;
+        case 18 :
+            (r + 35) -> reg_data = value;
+            break;
+        case 19 :
+            (r + 32) -> reg_data = value;
+            break;
+        case 23 :
+            (r + 33) -> reg_data = value;
+            break;
+        case 27 :
+            (r + 34) -> reg_data = value;
+            break;
+        default :
+            break;
+    }
 }
