@@ -170,21 +170,21 @@ Cycle 19, Register write, R00_SVC, val: 00000000
 Cycle 19, Register read, R00_SVC, val: 00000000
 Cycle 19, Register read, R00_SVC, val: 00000000
 Cycle 19, Register read, CPSR, val: 200001D3
-Cycle 19, Register write, CPSR, val: 400001D3
+Cycle 19, Register write, CPSR, val: 600001D3
 Cycle 20, Register read, PC_SVC, val: 00000028
 Cycle 20, Mem read (4 bytes, fetch) addr: 00000024, val: E1A0F00E
 Cycle 20, Register write, PC_SVC, val: 00000028
 Cycle 20, Register read, LR_SVC, val: 00000030
-Cycle 20, Register read, CPSR, val: 400001D3
+Cycle 20, Register read, CPSR, val: 600001D3
 Cycle 20, Register read, R00_SVC, val: 00000000
-Cycle 20, Register read, CPSR, val: 400001D3
+Cycle 20, Register read, CPSR, val: 600001D3
 Cycle 20, Register write, PC_SVC, val: 00000030
 Cycle 21, Register read, PC_SVC, val: 00000034
 Cycle 21, Mem read (4 bytes, fetch) addr: 00000030, val: 1AFFFFFD
 Cycle 21, Register write, PC_SVC, val: 00000034
 Cycle 21, Register read, PC_SVC, val: 00000038
-Cycle 21, Register read, CPSR, val: 400001D3
-Cycle 21, Register read, CPSR, val: 400001D3
+Cycle 21, Register read, CPSR, val: 600001D3
+Cycle 21, Register read, CPSR, val: 600001D3
 Cycle 22, Register read, PC_SVC, val: 00000038
 Cycle 22, Mem read (4 bytes, fetch) addr: 00000034, val: EF123456
 Cycle 22, Register write, PC_SVC, val: 00000038
