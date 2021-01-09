@@ -558,6 +558,15 @@ uint32_t getEndAddress(arm_core p, uint32_t ins){
     }
 }
 
+int updateRn(arm_core p, uint32_t ins){
+    if(get_bit(ins, 21 == 1)){
+        // Rn = Rn + (Number_Of_Set_Bits_In(register_list) * 4)
+        uint32_t rn_data = arm_read_register(p, get_bits(ins, 19, 16));
+        rn_data = rn_data + nbSetBits(ins) * 4;
+        arm_write_register(p, get_bits(ins, 19, 16), rn_data);
+    }
+}
+
 // LDM (1) (Load Multiple) loads a non-empty subset, or possibly all,
 // of the general-purpose registers from sequential memory locations.
 int ldm1(arm_core p, uint32_t ins){
@@ -580,9 +589,9 @@ int ldm1(arm_core p, uint32_t ins){
             uint32_t cpsrModded = (arm_read_cpsr(p) & 0xFFFFFFDF) | (get_bit(data, 0) << 5);//T Bit = value[0]
             arm_write_cpsr(p, cpsrModded);
             currAddr = currAddr + 4;//address = address + 4
-
         }
         if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
+        updateRn(p, ins);
     }
     return 0;
 }
@@ -602,6 +611,7 @@ int ldm2(arm_core p, uint32_t ins){
             }
         }
         if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
+        updateRn(p, ins);
     }
     return 0;
 }
@@ -632,6 +642,7 @@ int ldm3(arm_core p, uint32_t ins){
         currAddr = currAddr + 4;//address = address + 4
 
         if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
+        updateRn(p, ins);
     }
     return 0;
 }
@@ -651,6 +662,7 @@ int stm1(arm_core p, uint32_t ins){
             //address = address + 4
         }
         if(currAddr - 4 != getEndAddress(p, ins)) return 1;//assert end_address == address - 4
+        updateRn(p, ins);
     }
     return 0;
 }
@@ -671,6 +683,7 @@ int stm2(arm_core p, uint32_t ins){
         }
         if(currAddr - 4 != getEndAddress(p, ins)) return 1;
         //assert end_address == address - 4
+        updateRn(p, ins);
     }
     return 0;
 }

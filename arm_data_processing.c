@@ -86,7 +86,7 @@ uint32_t get_shifter_carry_out(uint64_t res){
 uint64_t imm(arm_core p, uint32_t ins){
 	uint32_t immed_8 = get_bits(ins, 7, 0);
 	uint32_t rotate_imm = get_bits(ins, 11, 8);
-	int32_t shifter_operand = rotateRight(immed_8, rotate_imm);
+	int32_t shifter_operand = rotateRight(immed_8, 2 * rotate_imm);
 	uint32_t shifter_carry_out = 0;
 	if(rotate_imm == 0) shifter_carry_out = get_cflag(p);
 	else shifter_carry_out = get_bit(shifter_operand, 31);
