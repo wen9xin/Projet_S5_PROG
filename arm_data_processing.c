@@ -296,19 +296,19 @@ int get_opcode(uint32_t ins){
 }
 
 int get_carry(arm_core p, int32_t number1, int32_t number2, int condition){
-	if(condition == 1){ // ADC
+	if(condition == 1){ // ADD / CMN
+		int64_t num1 = number1;
+		int64_t num2 = number2;
+		int32_t res = number1 + number2;
+		int64_t res64 = num1 + num2;
+		if(res == res64) return 0;
+		else return 1;
+	} else if(condition == 2){ // ADC
 		int complement = get_cflag(p);
 		int64_t num1 = number1;
 		int64_t num2 = number2;
 		int32_t res = number1 + number2 + complement;
 		int64_t res64 = num1 + num2 + complement;
-		if(res == res64) return 0;
-		else return 1;
-	} else if(condition == 2){ // ADD & CMN
-		int64_t num1 = number1;
-		int64_t num2 = number2;
-		int32_t res = number1 + number2;
-		int64_t res64 = num1 + num2;
 		if(res == res64) return 0;
 		else return 1;
 	}
@@ -319,7 +319,7 @@ int get_borrow(arm_core p, int32_t number1, int32_t number2, int condition){
 	if(condition == 1){ // SUB or RSB
 		if(number1 >= number2) return 0;
 		else return 1;
-	}else if(condition == 2){
+	}else if(condition == 2){ // SBC or RSC
 		int borrow = get_cflag(p);
 		int32_t res = number1 - number2 - ~borrow;
 		if(res >= 0) return 0;
@@ -375,9 +375,19 @@ uint32_t calcs_procedure(arm_core p, uint32_t ins){
 			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
 		}else if(get_s_bit(ins) == 1){
 			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
+			printf("n = %d, ", n);
 			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			int c = isAdds(ins) ? get_carry(p, rn_data, shifter_operand, 2) : ~get_borrow(p, shifter_operand, rn_data, 1);
+			printf("z = %d, ", z);
+			int c = 0;
+			if(get_opcode(ins) == 4) c = get_carry(p, rn_data, shifter_operand, 1); // ADD
+			if(get_opcode(ins) == 5) c = get_carry(p, rn_data, shifter_operand, 2); // ADC
+			if(get_opcode(ins) == 2) c = !get_borrow(p, rn_data, shifter_operand, 1); // SUB
+			if(get_opcode(ins) == 3) c = !get_borrow(p, shifter_operand, rn_data, 1); // RSB
+			if(get_opcode(ins) == 6) c = !get_borrow(p, rn_data, shifter_operand, 2); // SBC
+			if(get_opcode(ins) == 7) c = !get_borrow(p, shifter_operand, rn_data, 2); // RSC
+			printf("c = %d, ", c);
 			int v = get_overflow_flag(rn_data, shifter_operand, rd_data);
+			printf("v = %d, ", v);
 			modify_nzcv(p, n, z, c, v);
 		}
 	}

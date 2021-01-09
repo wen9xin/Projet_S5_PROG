@@ -559,7 +559,7 @@ uint32_t getEndAddress(arm_core p, uint32_t ins){
 }
 
 int updateRn(arm_core p, uint32_t ins){
-    if(get_bit(ins, 21 == 1)){
+    if(get_bit(ins, 21) == 1){
         // Rn = Rn + (Number_Of_Set_Bits_In(register_list) * 4)
         uint32_t rn_data = arm_read_register(p, get_bits(ins, 19, 16));
         rn_data = rn_data + nbSetBits(ins) * 4;

@@ -34,7 +34,7 @@ uint32_t calcBLTargetAddress(uint32_t ins, int mode){
     // Mode : 0 --> BL, 1--> BLX
     uint32_t res = get_bits(ins, 23, 0) | 0x00000000;
     if(get_bit(res, 23) == 1){
-        if(!mode) res = res | 0xFF000000 | get_bit_24(ins) << 1;
+        if(mode) res = res | 0xFF000000 | get_bit_24(ins) << 1;
         else res = res | 0xFF000000;
     } 
     return res << 2;
@@ -43,18 +43,19 @@ uint32_t calcBLTargetAddress(uint32_t ins, int mode){
 int blx1_procedure(arm_core p, uint32_t ins){
     uint32_t pc = arm_read_register(p, 15);
     if(conditionPassed(p, ins)){
-        if(get_bit_24(ins) || conditionPassed(p, ins) == 15) arm_write_register(p, 14, pc);
+        if(get_bit_24(ins)) arm_write_register(p, 14, pc - 4);
+        pc = pc + calcBLTargetAddress(ins, conditionPassed(p, ins) == 15);
+        arm_write_register(p, 15, pc);
     }
 
     if(conditionPassed(p, ins) == 15){
+        arm_write_register(p, 14, pc - 4);
         uint32_t cpsr = arm_read_cpsr(p);
         cpsr = (cpsr & 0xFFFFFFDF) | 0x20;
         arm_write_cpsr(p, cpsr);
+        pc = pc + calcBLTargetAddress(ins, conditionPassed(p, ins) == 15);
+        arm_write_register(p, 15, pc);
     }
-
-    pc = pc + calcBLTargetAddress(ins, conditionPassed(p, ins) == 15);
-    arm_write_register(p, 15, pc);
-
     return 0;
 }
 

@@ -96,19 +96,19 @@ uint32_t read_register(registers r, uint8_t reg) {
     }if(reg < 15){
         switch (mode){
             case 17 :
-                return (r + 23 + (reg-8)*2) -> reg_data;
+                return (r + 23 + (reg-13)*2) -> reg_data;
                 break;
             case 18 :
-                return (r + 22 + (reg-8)*2) -> reg_data;
+                return (r + 22 + (reg-13)*2) -> reg_data;
                 break;
             case 19 :
-                return (r + 19 + (reg-8)*2) -> reg_data;
+                return (r + 19 + (reg-13)*2) -> reg_data;
                 break;
             case 23 :
-                return (r + 20 + (reg-8)*2) -> reg_data;
+                return (r + 20 + (reg-13)*2) -> reg_data;
                 break;
             case 27 :
-                return (r + 21 + (reg-8)*2) -> reg_data;
+                return (r + 21 + (reg-13)*2) -> reg_data;
                 break;
             default :
                 return (r + 18 + (reg-13)*6) -> reg_data;
@@ -160,23 +160,23 @@ void write_register(registers r, uint8_t reg, uint32_t value) {
     }else if(reg < 15){
         switch (mode){
             case 17 :
-                (r + 23 + (reg-8)*2) -> reg_data = value;
+                (r + 23 + (reg-13)*2) -> reg_data = value;
                 return ;
                 break;
             case 18 :
-                (r + 22 + (reg-8)*2) -> reg_data = value;
+                (r + 22 + (reg-13)*2) -> reg_data = value;
                 return;
                 break;
             case 19 :
-                (r + 19 + (reg-8)*2) -> reg_data = value;
+                (r + 19 + (reg-13)*2) -> reg_data = value;
                 return;
                 break;
             case 23 :
-                (r + 20 + (reg-8)*2) -> reg_data = value;
+                (r + 20 + (reg-13)*2) -> reg_data = value;
                 return;
                 break;
             case 27 :
-                (r + 21 + (reg-8)*2) -> reg_data = value;
+                (r + 21 + (reg-13)*2) -> reg_data = value;
                 return;
                 break;
             default :
