@@ -12,7 +12,8 @@ main:
     
     mov r0, #0xaaaa
     mov r1, #0x5555
-    mov r2, #0xffff
+    mov r2, #0xFFFF
+
     and r4, r0, r1
     orr r4, r0, r1
     bic r4, r0, r1
@@ -23,3 +24,4 @@ main:
     cmp r0, r0
     cmp r0, r1
     swi 0x123456
+    

@@ -11,7 +11,7 @@
 #define HAVE_ARPA_INET_H 1
 
 /* Define to 1 if you have the `bzero' function. */
-/* #undef HAVE_BZERO */
+#define HAVE_BZERO 1
 
 /* Define to 1 if you have the `dup2' function. */
 #define HAVE_DUP2 1
@@ -20,7 +20,7 @@
 #define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the `fork' function. */
-/* #undef HAVE_FORK */
+#define HAVE_FORK 1
 
 /* Define to 1 if you have the `gethostbyaddr' function. */
 #define HAVE_GETHOSTBYADDR 1
@@ -42,7 +42,7 @@
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `memset' function. */
-/* #undef HAVE_MEMSET */
+#define HAVE_MEMSET 1
 
 /* Define to 1 if you have a working `mmap' system call. */
 #define HAVE_MMAP 1
@@ -116,7 +116,7 @@
 /* #undef HAVE_VFORK_H */
 
 /* Define to 1 if `fork' works. */
-/* #undef HAVE_WORKING_FORK */
+#define HAVE_WORKING_FORK 1
 
 /* Define to 1 if `vfork' works. */
 #define HAVE_WORKING_VFORK 1

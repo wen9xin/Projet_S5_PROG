@@ -89,6 +89,7 @@ POST_UNINSTALL = :
 noinst_PROGRAMS = example1$(EXEEXT) \
 	example2$(EXEEXT) example3$(EXEEXT) \
 	example4$(EXEEXT) \
+	exampleDataProcessing$(EXEEXT) \
 	insertion_sort$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -113,6 +114,9 @@ example3_LDADD = $(LDADD)
 am_example4_OBJECTS = example4.$(OBJEXT)
 example4_OBJECTS = $(am_example4_OBJECTS)
 example4_LDADD = $(LDADD)
+am_exampleDataProcessing_OBJECTS = exampleDataProcessing.$(OBJEXT)
+exampleDataProcessing_OBJECTS = $(am_exampleDataProcessing_OBJECTS)
+exampleDataProcessing_LDADD = $(LDADD)
 am_insertion_sort_OBJECTS = insertion_sort.$(OBJEXT)
 insertion_sort_OBJECTS = $(am_insertion_sort_OBJECTS)
 insertion_sort_LDADD = $(LDADD)
@@ -151,10 +155,11 @@ am__v_CCAS_ = $(am__v_CCAS_$(AM_DEFAULT_VERBOSITY))
 am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
 SOURCES = $(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
-	$(example4_SOURCES) $(insertion_sort_SOURCES)
+	$(example4_SOURCES) $(exampleDataProcessing_SOURCES) \
+	$(insertion_sort_SOURCES)
 DIST_SOURCES = $(example1_SOURCES) $(example2_SOURCES) \
 	$(example3_SOURCES) $(example4_SOURCES) \
-	$(insertion_sort_SOURCES)
+	$(exampleDataProcessing_SOURCES) $(insertion_sort_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -182,19 +187,19 @@ CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/build-aux/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/missing aclocal-1.16
+ACLOCAL = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/missing aclocal-1.16
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
-AUTOCONF = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/missing autoconf
-AUTOHEADER = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/missing autoheader
-AUTOMAKE = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/missing automake-1.16
+AUTOCONF = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/missing autoconf
+AUTOHEADER = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/missing autoheader
+AUTOMAKE = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/missing automake-1.16
 AWK = gawk
 CC = $(GCC_CROSS)
 CCAS = $(GCC_CROSS)
 CCASDEPMODE = depmode=gcc3
-CCASFLAGS = -Wall -Werror -g
+CCASFLAGS = -g -O2
 CCDEPMODE = depmode=gcc3
-CFLAGS = -Wall -Werror -g
+CFLAGS = -g -O2
 CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
@@ -213,13 +218,13 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LDFLAGS = 
-LEX = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/missing flex
+LEX = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/missing flex
 LEXLIB = 
 LEX_OUTPUT_ROOT = 
 LIBOBJS = 
 LIBS = 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/missing makeinfo
+MAKEINFO = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/missing makeinfo
 MKDIR_P = /usr/bin/mkdir -p
 OBJEXT = o
 PACKAGE = arm_simulator
@@ -234,10 +239,10 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = 
 VERSION = 1.4
-abs_builddir = /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/Examples
-abs_srcdir = /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/Examples
-abs_top_builddir = /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4
-abs_top_srcdir = /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4
+abs_builddir = /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/Examples
+abs_srcdir = /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/Examples
+abs_top_builddir = /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG
+abs_top_srcdir = /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG
 ac_ct_CC = gcc
 am__include = include
 am__leading_dot = .
@@ -256,7 +261,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/sevaarrinera/Study/Projet_S5/arm_simulator-1.4/build-aux/install-sh
+install_sh = ${SHELL} /home/sevaarrinera/Study/Projet_S5_Git/Projet_S5_PROG/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -285,6 +290,7 @@ example1_SOURCES = example1.s
 example2_SOURCES = example2.s
 example3_SOURCES = example3.s
 example4_SOURCES = example4.s
+exampleDataProcessing_SOURCES = exampleDataProcessing.s
 insertion_sort_SOURCES = insertion_sort.c
 EXTRA_DIST = linker_script
 all: all-am
@@ -339,6 +345,10 @@ example3$(EXEEXT): $(example3_OBJECTS) $(example3_DEPENDENCIES) $(EXTRA_example3
 example4$(EXEEXT): $(example4_OBJECTS) $(example4_DEPENDENCIES) $(EXTRA_example4_DEPENDENCIES) 
 	@rm -f example4$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(example4_OBJECTS) $(example4_LDADD) $(LIBS)
+
+exampleDataProcessing$(EXEEXT): $(exampleDataProcessing_OBJECTS) $(exampleDataProcessing_DEPENDENCIES) $(EXTRA_exampleDataProcessing_DEPENDENCIES) 
+	@rm -f exampleDataProcessing$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(exampleDataProcessing_OBJECTS) $(exampleDataProcessing_LDADD) $(LIBS)
 
 insertion_sort$(EXEEXT): $(insertion_sort_OBJECTS) $(insertion_sort_DEPENDENCIES) $(EXTRA_insertion_sort_DEPENDENCIES) 
 	@rm -f insertion_sort$(EXEEXT)
