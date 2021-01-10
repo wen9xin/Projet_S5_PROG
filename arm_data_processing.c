@@ -50,14 +50,8 @@ void modify_nzcv(arm_core p, int n, int z, int c, int v){
 	arm_write_cpsr(p, new_cpsr);
 }
 
-uint32_t arithmetic_shift_right(uint32_t x, uint32_t n){
-	uint32_t res = 0;
-	if(get_bit(x, 31) == 0) res = x >> n;
-	else{
-		uint32_t mask = 0xFFFFFFFF;
-		mask = ~(mask >> n);
-		res = (x >> n) & mask;
-	}
+uint32_t arithmetic_shift_right(uint32_t value, uint8_t shift){
+	uint32_t res = (value >> shift) | (get_bit(value, 31) ? ~0<<(32-shift) : 0);
 	return res;
 }
 
@@ -225,7 +219,7 @@ uint64_t asr_reg(arm_core p, uint32_t ins){
 // Data-processing operands - Rotate right with extend
 uint64_t rrx(arm_core p, uint32_t ins){
 	uint32_t rm_data = arm_read_register(p, get_bits(ins, 3, 0));
-	uint32_t shifter_operand = (get_cflag(p) << 31) | (rm_data > 1);
+	uint32_t shifter_operand = (get_cflag(p) << 31) | (rm_data >> 1);
 	uint32_t shifter_carry_out = get_bit(rm_data, 0);
 	uint64_t res = packing_shifter(shifter_operand, shifter_carry_out);
 	return res;
@@ -297,19 +291,11 @@ int get_opcode(uint32_t ins){
 
 int get_carry(arm_core p, int32_t number1, int32_t number2, int condition){
 	if(condition == 1){ // ADD / CMN
-		int64_t num1 = number1;
-		int64_t num2 = number2;
-		int32_t res = number1 + number2;
-		int64_t res64 = num1 + num2;
-		if(res == res64) return 0;
+		if(number2 <= INT32_MAX - number1) return 0;
 		else return 1;
 	} else if(condition == 2){ // ADC
 		int complement = get_cflag(p);
-		int64_t num1 = number1;
-		int64_t num2 = number2;
-		int32_t res = number1 + number2 + complement;
-		int64_t res64 = num1 + num2 + complement;
-		if(res == res64) return 0;
+		if(number2 + complement <= INT32_MAX - number1) return 0;
 		else return 1;
 	}
 	return 1;
@@ -321,7 +307,7 @@ int get_borrow(arm_core p, int32_t number1, int32_t number2, int condition){
 		else return 1;
 	}else if(condition == 2){ // SBC or RSC
 		int borrow = get_cflag(p);
-		int32_t res = number1 - number2 - ~borrow;
+		int32_t res = number1 - number2 - !borrow;
 		if(res >= 0) return 0;
 		else return 1;
 	}
@@ -367,17 +353,15 @@ uint32_t calcs_procedure(arm_core p, uint32_t ins){
 		if(get_opcode(ins) == 4) rd_data = rn_data + shifter_operand; // ADD
 		if(get_opcode(ins) == 5) rd_data = rn_data + shifter_operand + get_cflag(p);// ADC
 		if(get_opcode(ins) == 2) rd_data = rn_data - shifter_operand; // SUB
-		if(get_opcode(ins) == 6) rd_data = rn_data - shifter_operand - (~get_cflag(p)); // SBC
+		if(get_opcode(ins) == 6) rd_data = rn_data - shifter_operand - (!get_cflag(p)); // SBC
 		if(get_opcode(ins) == 3) rd_data = shifter_operand - rn_data; // RSB
-		if(get_opcode(ins) == 7) rd_data = shifter_operand - rn_data - (~get_cflag(p)); // RSC
+		if(get_opcode(ins) == 7) rd_data = shifter_operand - rn_data - (!get_cflag(p)); // RSC
 		arm_write_register(p, get_rd(ins), rd_data);
 		if(get_s_bit(ins) == 1 && get_rd(ins) == 15){
 			if(arm_current_mode_has_spsr(p)) arm_write_cpsr(p, arm_read_spsr(p));
 		}else if(get_s_bit(ins) == 1){
 			int n = get_bit(arm_read_register(p, get_rd(ins)), 31);
-			printf("n = %d, ", n);
 			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
-			printf("z = %d, ", z);
 			int c = 0;
 			if(get_opcode(ins) == 4) c = get_carry(p, rn_data, shifter_operand, 1); // ADD
 			if(get_opcode(ins) == 5) c = get_carry(p, rn_data, shifter_operand, 2); // ADC
@@ -385,9 +369,8 @@ uint32_t calcs_procedure(arm_core p, uint32_t ins){
 			if(get_opcode(ins) == 3) c = !get_borrow(p, shifter_operand, rn_data, 1); // RSB
 			if(get_opcode(ins) == 6) c = !get_borrow(p, rn_data, shifter_operand, 2); // SBC
 			if(get_opcode(ins) == 7) c = !get_borrow(p, shifter_operand, rn_data, 2); // RSC
-			printf("c = %d, ", c);
 			int v = get_overflow_flag(rn_data, shifter_operand, rd_data);
-			printf("v = %d, ", v);
+			printf("n = %d, z = %d, c = %d, v = %d\n", n, z, c, v);
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
@@ -414,6 +397,7 @@ uint32_t bitwise_procedure(arm_core p, uint32_t ins){
 			int z = arm_read_register(p, get_rd(ins)) == 0 ? 1 : 0;
 			int c = get_shifter_carry_out(packaged);
 			int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
+			printf("\nn = %d, z = %d, c = %d, v = %d\n", n, z, c, v);
 			modify_nzcv(p, n, z, c, v);
 		}
 	}
@@ -436,6 +420,7 @@ uint32_t cmptst_procedure(arm_core p, uint32_t ins){
 		if(isTest(ins)) c = get_shifter_carry_out(packaged);
 		else c = (get_opcode(ins) == 10) ? get_carry(p, rn_data, shifter_operand, 2) : get_borrow(p, rn_data, shifter_operand, 1);
 		int v = (arm_read_cpsr(p) >> 28) & 1; // Unaffected
+		printf("\nn = %d, z = %d, c = %d, v = %d\n", n, z, c, v);
 		modify_nzcv(p, n, z, c, v);
 	}
 	return 0;

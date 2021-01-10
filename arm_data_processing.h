@@ -31,7 +31,7 @@ int get_rn(uint32_t ins);
 int get_rd(uint32_t ins);
 int get_s_bit(uint32_t ins);
 void modify_nzcv(arm_core p, int n, int z, int c, int v);
-uint32_t arithmetic_shift_right(uint32_t x, uint32_t n);
+uint32_t arithmetic_shift_right(uint32_t value, uint8_t shift);
 
 /*  
 	Functions for Addressing mode 1
