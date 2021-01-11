@@ -89,8 +89,12 @@ POST_UNINSTALL = :
 @HAVE_ARM_COMPILER_TRUE@noinst_PROGRAMS = example1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example2$(EXEEXT) example3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example4$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	exampleAddrMode2$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	exampleAddrMode3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	exampleDataProcessing$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	exampleAddrMode1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	exampleAddrMode2_2$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	exampleLoadStore$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -118,9 +122,21 @@ example4_LDADD = $(LDADD)
 am_exampleAddrMode1_OBJECTS = exampleAddrMode1.$(OBJEXT)
 exampleAddrMode1_OBJECTS = $(am_exampleAddrMode1_OBJECTS)
 exampleAddrMode1_LDADD = $(LDADD)
+am_exampleAddrMode2_OBJECTS = exampleAddrMode2.$(OBJEXT)
+exampleAddrMode2_OBJECTS = $(am_exampleAddrMode2_OBJECTS)
+exampleAddrMode2_LDADD = $(LDADD)
+am_exampleAddrMode2_2_OBJECTS = exampleAddrMode2_2.$(OBJEXT)
+exampleAddrMode2_2_OBJECTS = $(am_exampleAddrMode2_2_OBJECTS)
+exampleAddrMode2_2_LDADD = $(LDADD)
+am_exampleAddrMode3_OBJECTS = exampleAddrMode3.$(OBJEXT)
+exampleAddrMode3_OBJECTS = $(am_exampleAddrMode3_OBJECTS)
+exampleAddrMode3_LDADD = $(LDADD)
 am_exampleDataProcessing_OBJECTS = exampleDataProcessing.$(OBJEXT)
 exampleDataProcessing_OBJECTS = $(am_exampleDataProcessing_OBJECTS)
 exampleDataProcessing_LDADD = $(LDADD)
+am_exampleLoadStore_OBJECTS = exampleLoadStore.$(OBJEXT)
+exampleLoadStore_OBJECTS = $(am_exampleLoadStore_OBJECTS)
+exampleLoadStore_LDADD = $(LDADD)
 am_insertion_sort_OBJECTS = insertion_sort.$(OBJEXT)
 insertion_sort_OBJECTS = $(am_insertion_sort_OBJECTS)
 insertion_sort_LDADD = $(LDADD)
@@ -160,10 +176,14 @@ am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
 SOURCES = $(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
 	$(example4_SOURCES) $(exampleAddrMode1_SOURCES) \
-	$(exampleDataProcessing_SOURCES) $(insertion_sort_SOURCES)
+	$(exampleAddrMode2_SOURCES) $(exampleAddrMode2_2_SOURCES) \
+	$(exampleAddrMode3_SOURCES) $(exampleDataProcessing_SOURCES) \
+	$(exampleLoadStore_SOURCES) $(insertion_sort_SOURCES)
 DIST_SOURCES = $(example1_SOURCES) $(example2_SOURCES) \
 	$(example3_SOURCES) $(example4_SOURCES) \
-	$(exampleAddrMode1_SOURCES) $(exampleDataProcessing_SOURCES) \
+	$(exampleAddrMode1_SOURCES) $(exampleAddrMode2_SOURCES) \
+	$(exampleAddrMode2_2_SOURCES) $(exampleAddrMode3_SOURCES) \
+	$(exampleDataProcessing_SOURCES) $(exampleLoadStore_SOURCES) \
 	$(insertion_sort_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -297,6 +317,10 @@ example3_SOURCES = example3.s
 example4_SOURCES = example4.s
 exampleDataProcessing_SOURCES = exampleDataProcessing.s
 exampleAddrMode1_SOURCES = exampleAddrMode1.s
+exampleLoadStore_SOURCES = exampleLoadStore.s
+exampleAddrMode2_SOURCES = exampleAddrMode2.s
+exampleAddrMode3_SOURCES = exampleAddrMode3.s
+exampleAddrMode2_2_SOURCES = exampleAddrMode2_2.s
 insertion_sort_SOURCES = insertion_sort.c
 EXTRA_DIST = linker_script
 all: all-am
@@ -356,9 +380,25 @@ exampleAddrMode1$(EXEEXT): $(exampleAddrMode1_OBJECTS) $(exampleAddrMode1_DEPEND
 	@rm -f exampleAddrMode1$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(exampleAddrMode1_OBJECTS) $(exampleAddrMode1_LDADD) $(LIBS)
 
+exampleAddrMode2$(EXEEXT): $(exampleAddrMode2_OBJECTS) $(exampleAddrMode2_DEPENDENCIES) $(EXTRA_exampleAddrMode2_DEPENDENCIES) 
+	@rm -f exampleAddrMode2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(exampleAddrMode2_OBJECTS) $(exampleAddrMode2_LDADD) $(LIBS)
+
+exampleAddrMode2_2$(EXEEXT): $(exampleAddrMode2_2_OBJECTS) $(exampleAddrMode2_2_DEPENDENCIES) $(EXTRA_exampleAddrMode2_2_DEPENDENCIES) 
+	@rm -f exampleAddrMode2_2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(exampleAddrMode2_2_OBJECTS) $(exampleAddrMode2_2_LDADD) $(LIBS)
+
+exampleAddrMode3$(EXEEXT): $(exampleAddrMode3_OBJECTS) $(exampleAddrMode3_DEPENDENCIES) $(EXTRA_exampleAddrMode3_DEPENDENCIES) 
+	@rm -f exampleAddrMode3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(exampleAddrMode3_OBJECTS) $(exampleAddrMode3_LDADD) $(LIBS)
+
 exampleDataProcessing$(EXEEXT): $(exampleDataProcessing_OBJECTS) $(exampleDataProcessing_DEPENDENCIES) $(EXTRA_exampleDataProcessing_DEPENDENCIES) 
 	@rm -f exampleDataProcessing$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(exampleDataProcessing_OBJECTS) $(exampleDataProcessing_LDADD) $(LIBS)
+
+exampleLoadStore$(EXEEXT): $(exampleLoadStore_OBJECTS) $(exampleLoadStore_DEPENDENCIES) $(EXTRA_exampleLoadStore_DEPENDENCIES) 
+	@rm -f exampleLoadStore$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(exampleLoadStore_OBJECTS) $(exampleLoadStore_LDADD) $(LIBS)
 
 insertion_sort$(EXEEXT): $(insertion_sort_OBJECTS) $(insertion_sort_DEPENDENCIES) $(EXTRA_insertion_sort_DEPENDENCIES) 
 	@rm -f insertion_sort$(EXEEXT)

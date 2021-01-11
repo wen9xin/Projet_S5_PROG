@@ -83,7 +83,8 @@ uint32_t addr_Sca_Offset(arm_core p, uint32_t ins){
             if(get_bits(ins, 11, 7) == 0){ // RRX
                 uint32_t cpsr = arm_read_cpsr(p);
                 uint32_t c = get_bit(cpsr, 29) << 31;
-                index = c || (arm_read_register(p, get_Rm(ins)) >> 1);
+                index = c | (arm_read_register(p, get_Rm(ins)) >> 1);
+                printf("%x", arm_read_register(p, get_Rm(ins)));
             }else{ // ROR
                 index = rotateRight(arm_read_register(p, get_Rm(ins)), get_bits(ins, 11, 7));
             }
@@ -172,7 +173,7 @@ int is_Misc_Reg_Offset(uint32_t ins){
 
 uint32_t misc_Imm_Offset(arm_core p, uint32_t ins){
     uint32_t addr;
-    uint8_t offset8 = (get_bits(ins, 11, 8) << 4) || (get_bits(ins, 3, 0));
+    uint8_t offset8 = (get_bits(ins, 11, 8) << 4) | (get_bits(ins, 3, 0));
     if(get_Ubit(ins) == 1) addr = arm_read_register(p, get_Rn(ins)) + offset8;
     else addr = arm_read_register(p, get_Rn(ins)) - offset8;
     return addr;
@@ -310,6 +311,7 @@ int load_Half(arm_core p, uint32_t ins){
 
 // LDRSB : loads a byte from memory and sign-extends the byte to a 32-bit word.
 int load_Signed_Byte(arm_core p, uint32_t ins){
+    //printf("LDRSB exe\n");
     uint8_t data;
     uint32_t data32;
     uint32_t addr = getMiscAddrByOffset(p, ins);
@@ -458,7 +460,7 @@ int store_Word_Trans(arm_core p, uint32_t ins){
     uint32_t addr = arm_read_register(p, get_Rn(ins));
     uint8_t rd = get_Rd(ins);
     if(conditionPassed(p, ins)) {
-        data = arm_read_usr_register(p, rd) & 0xFF;//Memory[address,4] = Rd
+        data = arm_read_usr_register(p, rd);//Memory[address,4] = Rd
         arm_write_word(p, addr, data);
     }
     if(conditionPassed(p, ins)){
@@ -510,7 +512,7 @@ int arm_load_store_extra(arm_core p, uint32_t ins) {
     if(bit27 == 0 && bit26 == 0 && bit25 == 0 && bit7 == 1 && bit4 == 1){
         if(bit20 == 0 && bit6 == 1 && bit5 == 0) load_Double_Word(p, ins); // LDRD
         else if(bit20 == 1 && bit6 == 0 && bit5 == 1) load_Half(p, ins); // LDRH
-        else if(bit20 == 1 && bit6 == 0 && bit5 == 1) load_Signed_Byte(p, ins); // LDRSB
+        else if(bit20 == 1 && bit6 == 1 && bit5 == 0) load_Signed_Byte(p, ins); // LDRSB
         else if(bit20 == 1 && bit6 == 1 && bit5 == 1) load_Signed_Half(p, ins); // LDRSH
         else if(bit20 == 0 && bit6 == 1 && bit5 == 1) store_Double_Word(p, ins);// STRD
         else if(bit20 == 0 && bit6 == 0 && bit5 == 1) store_Half(p, ins); // STRH
