@@ -99,7 +99,7 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
     return UNDEFINED_INSTRUCTION;
 }
 
-int mrs_procedure(arm_core p,uint32_t ins){
+int mrs_procedure(arm_core p, uint32_t ins){
     if(conditionPassed(p, ins)){
         uint8_t rd = get_bits(ins, 15, 12);
         uint32_t val = 0;
