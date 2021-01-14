@@ -58,8 +58,8 @@ uint32_t arithmetic_shift_right(uint32_t value, uint8_t shift){
 /*  
 	Functions for Addressing mode 1
 	return an 64 bit unsigned int where:
- 	first 32 bits is shifter_operand,
- 	second 32 bits is shifter_carry_out.
+		The first 32 bits is shifter_operand,
+		And the second 32 bits is shifter_carry_out.
 */
 
 uint64_t packing_shifter(uint32_t shifter_operand, uint32_t shifter_carry_out){
@@ -290,7 +290,7 @@ int get_opcode(uint32_t ins){
 }
 
 int get_carry(arm_core p, int32_t number1, int32_t number2, int condition){
-	if(condition == 1){ // ADD / CMN
+	if(condition == 1){ // ADD or CMN
 		if(number2 <= INT32_MAX - number1) return 0;
 		else return 1;
 	} else if(condition == 2){ // ADC
