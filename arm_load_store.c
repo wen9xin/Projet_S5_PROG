@@ -223,7 +223,7 @@ int load_Word(arm_core p, uint32_t ins){
     uint8_t rd = get_Rd(ins);
     //MemoryAccess(B-bit, E-bit)
     if(conditionPassed(p, ins)) {//if ConditionPassed(cond) then
-        arm_read_word(p, addr, &data);//data = Memory[address,4] Rotate_Right (8 * address[1:0])
+        arm_read_word(p, addr, &data);//data = Memory[address,4]
         if(rd == 15){//if (Rd is R15) then
             arm_write_register(p, rd, data & 0xFFFFFFFE);//PC = data AND 0xFFFFFFFE
             uint32_t cpsrModded = (arm_read_cpsr(p) & 0xFFFFFFDF) | (get_bit(data, 0) << 5);//T Bit = data[0]
